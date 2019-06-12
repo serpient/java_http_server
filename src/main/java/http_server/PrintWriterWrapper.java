@@ -10,6 +10,7 @@ public class PrintWriterWrapper implements WriterWrapper  {
     }
     public void send(String data) {
         printWriter.println(data);
+        printWriter.flush();
     }
     public void close() { printWriter.close(); }
 }

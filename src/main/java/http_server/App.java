@@ -7,7 +7,7 @@ public class App {
     public static void main(String args[]) {
         try {
             ServerSocket serverSocket = new ServerSocket(setPortNumber(args));
-            Thread serverThread = new Thread(new HTTPProtocol(serverSocket), "SERVER");
+            Thread serverThread = new Thread(new HTTPProtocol(serverSocket), "HTTPServer");
             serverThread.start();
         } catch (IOException e) {
             System.err.println(e.toString());
@@ -17,6 +17,6 @@ public class App {
     private static int setPortNumber(String[] terminal_args) {
         return terminal_args.length > 0
             ? Integer.parseInt(terminal_args[0])
-            : 1234;
+            : 5000;
     }
 }

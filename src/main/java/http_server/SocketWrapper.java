@@ -4,4 +4,5 @@ public interface SocketWrapper {
     String readData();
     void sendData(String data);
     void close();
+    boolean ready();
 }

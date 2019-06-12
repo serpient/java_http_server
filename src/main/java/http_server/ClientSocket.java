@@ -3,11 +3,13 @@ package http_server;
 import java.io.BufferedReader;
 import java.net.Socket;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class ClientSocket implements SocketWrapper {
     private final Socket clientSocket;
     private BufferedReader inputStream;
     private WriterWrapper outputStream;
+    char[] characterBuffer = new char[100000];
 
     public ClientSocket(
             Socket clientSocket,
@@ -21,7 +23,8 @@ public class ClientSocket implements SocketWrapper {
 
     public String readData() {
         try {
-            return inputStream.readLine();
+            int bytes_read = inputStream.read(characterBuffer);
+            return new String(characterBuffer, 0, bytes_read);
         } catch (IOException e) {
             System.err.println(e.toString());
             return e.toString();
@@ -39,6 +42,15 @@ public class ClientSocket implements SocketWrapper {
             clientSocket.close();
         } catch (IOException e) {
             System.err.println(e.toString());
+        }
+    }
+
+    public boolean ready() {
+        try {
+            return inputStream.ready();
+        } catch (IOException e) {
+            System.err.println(e.toString());
+            return false;
         }
     }
 }
