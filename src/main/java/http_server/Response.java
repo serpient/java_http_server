@@ -4,58 +4,82 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Response {
-    RequestParser requestParser;
+    RequestParser request;
     Router router;
+    LinkedHashMap<String, String> headerCollection = new LinkedHashMap<>();
+    String status;
+    String responseBody = "";
+    String crlf = "\r\n";
 
     public Response(RequestParser requestParser, Router router) {
         System.err.println(router);
-        this.requestParser = requestParser;
+        this.request = requestParser;
         this.router = router;
+        this.status = "200 OK";
     }
 
     public String generateResponse() {
-        String requestRoute = requestParser.route();
-        String requestMethod = requestParser.method();
-        String requestBody = requestParser.body();
+        String requestRoute = request.route();
+        String requestMethod = request.method();
+        String requestBody = request.body();
 
-        String crlf = "\r\n";
-
-        String outputLine = starterHeader();
-
-        String responseBody = router.response(requestMethod, requestRoute, "", outputLine);
+        header("Date", currentDateTime());
+        header("Server", "JavaServer/0.1");
+        router.runCallback(requestMethod, requestRoute, request, this);
 
         if (hasBody(requestBody)) {
             responseBody += requestBody;
         }
 
-        System.err.println("request=" + requestRoute);
-
         if (hasBody(responseBody)) {
-            String contentTypeHeader = "Content-Type: text/plain" + crlf;
-            String contentLengthHeader = "Content-Length: " + getContentLength(responseBody) + crlf;
-
-            outputLine += contentTypeHeader + contentLengthHeader + crlf;
-
-            if (!requestMethod.equals("HEAD")) {
-                outputLine += responseBody;
-            }
-
+            header("Content-Type", "text/plain");
+            header("Content-Length", Integer.toString(getContentLength(responseBody)));
         }
 
-        return outputLine;
+        String response = getHeader();
+
+        if (!requestMethod.equals("HEAD") && hasBody(responseBody)) {
+            response += crlf + responseBody;
+        }
+
+        return response;
     }
 
-    private String starterHeader() {
-        String crlf = "\r\n";
+    public String getHeader() {
+        String header = responseLine() + crlf;
 
-        String responseLine = "HTTP/1.1 " + "200 OK" + crlf;
-        String dateHeader = "Date: " + currentDateTime() + crlf;
-        String serverHeader = "Server: JavaServer/0.1" + crlf;
-        return responseLine + dateHeader + serverHeader;
+        for (Map.Entry<String, String> entry : headerCollection.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            header += key + ": " + value + crlf;
+        }
+
+        return header;
     }
 
+    public void header(String headerName, String headerValue) {
+        headerCollection.put(headerName, headerValue);
+    }
+
+    public void status(String newStatus) {
+        this.status = newStatus;
+    }
+
+    public void body(String newBody) {
+        this.responseBody = newBody;
+    }
+
+    public String getResponseBody() {
+        return responseBody;
+    }
+
+    private String responseLine() {
+        return "HTTP/1.1 " + status;
+    }
 
     private String currentDateTime() {
         ZonedDateTime date = LocalDateTime.now().atZone(ZoneId.of("GMT+00"));

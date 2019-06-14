@@ -75,7 +75,7 @@ public class ServerTest {
         String responseLine = "HTTP/1.1 200 OK" + crlf;
         String contentTypeHeader = "Content-Type: text/plain"  + crlf;
         String contentLengthHeader = "Content-Length: 48" + crlf;
-        String response = responseLine + dateHeader + serverHeader + contentTypeHeader + contentLengthHeader + crlf;
+        String response = responseLine + dateHeader + serverHeader + contentTypeHeader + contentLengthHeader;
 
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -86,19 +86,19 @@ public class ServerTest {
     }
 
 
-    // @Test
-    // public void GET_Request_Is_Responded_with_404_When_Resource_Invalid() {
-    //     String request = "GET /resource_not_found HTTP/1.1";
-    //     String responseLine = "HTTP/1.1 404 Not Found" + crlf;
-    //     String response = responseLine + dateHeader + serverHeader;
+    @Test
+    public void GET_Request_Is_Responded_with_404_When_Resource_Invalid() {
+        String request = "GET /resource_not_found HTTP/1.1";
+        String responseLine = "HTTP/1.1 404 Not Found" + crlf;
+        String response = responseLine + dateHeader + serverHeader;
 
-    //     MockClientSocket mockClientSocket = new MockClientSocket(request);
-    //     Session session = new Session(mockClientSocket, router);
+        MockClientSocket mockClientSocket = new MockClientSocket(request);
+        Session session = new Session(mockClientSocket, router);
 
-    //     session.run();
+        session.run();
 
-    //     assertEquals(response, mockClientSocket.getSentData());
-    // }
+        assertEquals(response, mockClientSocket.getSentData());
+    }
 
     @Test
     public void POST_Request_Is_Responded_with_Headers_And_Echoed_Post_Value() {

@@ -25,13 +25,12 @@ public class Router {
         updateCollection("POST", route, handler);
     }
 
-    public String response(String method, String route, String req, String res) {
+    public void runCallback(String method, String route, RequestParser req, Response res) {
         HashMap<String, Callback> methodCollection = getMethodCollection(route);
-        if (methodCollection.isEmpty()) {
-            return notFoundHandler();
+        if (methodCollection.isEmpty() || methodCollection.get(method) == null) {
+            res.status("404 Not Found");
         } else {
-            String test =  methodCollection.get(method).run(req, res);
-            return test;
+            methodCollection.get(method).run(req, res);
         }
     }
 
@@ -45,9 +44,5 @@ public class Router {
         return collection.get(route) == null
             ? new HashMap<>()
             : collection.get(route);
-    }
-
-    private String notFoundHandler() {
-        return "HTTP/1.1 404 Not Found";
     }
 }

@@ -9,10 +9,8 @@ public class RequestParser {
     public RequestParser(String request) {
         String[] splitRequest = request.trim().split("\r\n");
 
-        String[] request_line = splitRequest[0].trim().split("\\s");
-        requestCollection.put("method", request_line[0]);
-        requestCollection.put("route", request_line[1]);
-        requestCollection.put("body", bodyParser(splitRequest));
+        responseLineParser(splitRequest);
+        bodyParser(splitRequest);
         headerParser(splitRequest);
     }
 
@@ -21,7 +19,7 @@ public class RequestParser {
     }
 
     public String body() {
-        return requestCollection.get("body");
+        return requestCollection.get("responseBody");
     }
 
     public String route() {
@@ -32,22 +30,27 @@ public class RequestParser {
         return headersCollection;
     }
 
-    private String bodyParser(String[] splitRequest) {
+    private void responseLineParser(String[] splitRequest) {
+        String[] request_line = splitRequest[0].trim().split("\\s");
+        requestCollection.put("method", request_line[0]);
+        requestCollection.put("route", request_line[1]);
+    }
+
+    private void bodyParser(String[] splitRequest) {
         int startOfBodyIdx = getStartOfBodyIdx(splitRequest);
 
-        if (startOfBodyIdx == -1) {
-            return "";
-        } else {
-            String requestBody = "";
+        String body = "";
+        if (startOfBodyIdx != -1) {
             for (int i = startOfBodyIdx + 1; i < splitRequest.length; i++) {
-                if (i == splitRequest.length - 1) {
-                    requestBody += splitRequest[i];
-                } else {
-                    requestBody += splitRequest[i] + "\n";
-                }
+                body += atEndOfBody(i, splitRequest) ? splitRequest[i] : splitRequest[i] + "\n";
             }
-            return requestBody;
         }
+
+        requestCollection.put("responseBody", body);
+    }
+
+    private boolean atEndOfBody(int currentIdx, String[] text) {
+        return currentIdx == text.length - 1;
     }
 
     private void headerParser(String[] splitRequest) {
