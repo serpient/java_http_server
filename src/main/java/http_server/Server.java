@@ -8,13 +8,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
 
-public class Server implements Runnable {
-    private final ServerSocket server;
-    private final Router router;
+public class Server {
+    private ServerSocket server;
+    private Router router;
 
-    public Server(ServerSocket server, Router router) {
-        this.server = server;
-        this.router = router;
+    public Server(int port, Router router) {
+        try {
+            this.server = new ServerSocket(port);
+            this.router = router;
+        } catch (IOException e) {
+            System.err.println(e.toString());
+        }
     }
 
     static void threadMessage(String message) {
@@ -22,7 +26,7 @@ public class Server implements Runnable {
         System.out.format("%s: %s%n", threadName, message);
     }
 
-    public void run() {
+    public void start() {
         while (true) {
             threadMessage("Waiting for connection");
             Socket clientSocket;

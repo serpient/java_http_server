@@ -1,18 +1,18 @@
 package application;
-import http_server.HTTPProtocol;
+import http_server.Server;
 import http_server.Router;
 
 public class App {
     static Router app;
-    static HTTPProtocol server;
+    static Server server;
 
     public static void main(String args[]) {
         app = new Router();
         createRoutes();
 
-        server = new HTTPProtocol();
+        server = new Server(setPortNumber(args), app);
 
-        server.start(setPortNumber(args), app);
+        server.start();
     }
 
     private static void createRoutes() {
