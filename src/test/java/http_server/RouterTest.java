@@ -18,16 +18,17 @@ public class RouterTest {
     String content_length = "Content-Length: 47" + crlf;
     String body = crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
     String request = request_line + user_agent + content_type + content_length + body;
-    RequestParser req = new RequestParser(request);
+    RequestParser parser = new RequestParser(request);
+    Request req = new Request(parser.method(), parser.route(), parser.body(), parser.headers());
     Response res = new Response(req, new Router());
 
     String anonymousFn_True_Result = "true";
-    Callback anonymousFn_True = (RequestParser req, Response res) -> {
+    Callback anonymousFn_True = (Request req, Response res) -> {
         res.responseBody = anonymousFn_True_Result;
     };
 
     String anonymousFn_False_Result = "false";
-    Callback anonymousFn_False = (RequestParser req, Response res) -> {
+    Callback anonymousFn_False = (Request req, Response res) -> {
         res.responseBody = anonymousFn_False_Result;
     };
 

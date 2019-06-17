@@ -26,8 +26,8 @@ public class Session implements Runnable {
             String input = client.readData();
 
             RequestParser parser = new RequestParser(input);
-            Response responder = new Response(parser, router);
-            String response = responder.generateResponse();
+            Request request = new Request(parser.method(), parser.route(), parser.body(), parser.headers());
+            String response = new Response(request, router).generateResponse();
 
             serverPrint(response);
 

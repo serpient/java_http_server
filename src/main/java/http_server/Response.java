@@ -8,24 +8,24 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Response {
-    RequestParser request;
+    Request request;
     Router router;
     LinkedHashMap<String, String> headerCollection = new LinkedHashMap<>();
     String status;
     String responseBody = "";
     String crlf = "\r\n";
 
-    public Response(RequestParser requestParser, Router router) {
+    public Response(Request request, Router router) {
         System.err.println(router);
-        this.request = requestParser;
+        this.request = request;
         this.router = router;
         this.status = "200 OK";
     }
 
     public String generateResponse() {
-        String requestRoute = request.route();
-        String requestMethod = request.method();
-        String requestBody = request.body();
+        String requestRoute = request.getRoute();
+        String requestMethod = request.getMethod();
+        String requestBody = request.getBody();
 
         header("Date", currentDateTime());
         header("Server", "JavaServer/0.1");

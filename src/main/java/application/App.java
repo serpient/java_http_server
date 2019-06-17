@@ -1,5 +1,5 @@
 package application;
-import http_server.RequestParser;
+import http_server.Request;
 import http_server.Response;
 import http_server.Server;
 import http_server.Router;
@@ -17,21 +17,21 @@ public class App {
     }
 
     private static void createRoutes() {
-        app.get("/simple_get", (RequestParser req, Response res) -> {});
+        app.get("/simple_get", (Request request, Response response) -> {});
 
-        app.head("/simple_get", (RequestParser req, Response res) -> {});
+        app.head("/simple_get", (Request request, Response response) -> {});
 
-        app.get("/get_with_body", (RequestParser req, Response res) -> {
-            res.body("Here are all my favorite movies:\n" + "- Harry " +
+        app.get("/get_with_body", (Request request, Response response) -> {
+            response.body("Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n");
         });
 
-        app.head("/get_with_body", (RequestParser req, Response res) -> {
-            res.body("Here are all my favorite movies:\n" + "- Harry " +
+        app.head("/get_with_body", (Request request, Response response) -> {
+            response.body("Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n");
         });
 
-        app.post("/echo_body", (RequestParser req, Response res) -> {});
+        app.post("/echo_body", (Request request, Response response) -> {});
     }
 
     private static int setPortNumber(String[] terminal_args) {

@@ -3,57 +3,16 @@ package http_server;
 import java.util.HashMap;
 
 public class RequestParser {
-    HashMap<String, String> requestCollection = new HashMap<>();
-    HashMap<String, String> headersCollection = new HashMap<>();
+    String[] splitRequest;
+    String[] request_line;
 
     public RequestParser(String request) {
-        String[] splitRequest = request.trim().split("\r\n");
-
-        responseLineParser(splitRequest);
-        bodyParser(splitRequest);
-        headerParser(splitRequest);
-    }
-
-    public String method() {
-        return requestCollection.get("method");
-    }
-
-    public String body() {
-        return requestCollection.get("responseBody");
-    }
-
-    public String route() {
-        return requestCollection.get("route");
+        splitRequest = request.trim().split("\r\n");
+        request_line = splitRequest[0].trim().split("\\s");
     }
 
     public HashMap<String, String> headers() {
-        return headersCollection;
-    }
-
-    private void responseLineParser(String[] splitRequest) {
-        String[] request_line = splitRequest[0].trim().split("\\s");
-        requestCollection.put("method", request_line[0]);
-        requestCollection.put("route", request_line[1]);
-    }
-
-    private void bodyParser(String[] splitRequest) {
-        int startOfBodyIdx = getStartOfBodyIdx(splitRequest);
-
-        String body = "";
-        if (startOfBodyIdx != -1) {
-            for (int i = startOfBodyIdx + 1; i < splitRequest.length; i++) {
-                body += atEndOfBody(i, splitRequest) ? splitRequest[i] : splitRequest[i] + "\n";
-            }
-        }
-
-        requestCollection.put("responseBody", body);
-    }
-
-    private boolean atEndOfBody(int currentIdx, String[] text) {
-        return currentIdx == text.length - 1;
-    }
-
-    private void headerParser(String[] splitRequest) {
+        HashMap<String, String> headersCollection = new HashMap<>();
         int startOfBodyIdx = getStartOfBodyIdx(splitRequest);
         int skipRequestLineIdx = 1;
         int endOfHeadersIdx = startOfBodyIdx == -1 ? splitRequest.length : startOfBodyIdx;
@@ -64,6 +23,32 @@ public class RequestParser {
             String headerValue = splitHeader[1].trim();
             headersCollection.put(headerName, headerValue);
         }
+        return headersCollection;
+    }
+
+    public String method() {
+        return request_line[0];
+    }
+
+    public String route() {
+        return request_line[1];
+    }
+
+    public String body() {
+        int startOfBodyIdx = getStartOfBodyIdx(splitRequest);
+
+        String body = "";
+        if (startOfBodyIdx != -1) {
+            for (int i = startOfBodyIdx + 1; i < splitRequest.length; i++) {
+                body += atEndOfBody(i, splitRequest) ? splitRequest[i] : splitRequest[i] + "\n";
+            }
+        }
+
+        return body;
+    }
+
+    private boolean atEndOfBody(int currentIdx, String[] text) {
+        return currentIdx == text.length - 1;
     }
 
     private int getStartOfBodyIdx(String[] splitRequest) {

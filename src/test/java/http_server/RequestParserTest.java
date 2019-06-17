@@ -17,9 +17,9 @@ public class RequestParserTest {
 
     @Test
     public void request_with_body_parse_method() {
-        RequestParser parser = new RequestParser(post_request);
+        RequestParser parse = new RequestParser(post_request);
 
-        assertEquals("POST", parser.method());
+        assertEquals("POST", parse.method());
     }
 
     @Test
