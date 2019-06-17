@@ -4,6 +4,7 @@
 .classpath
 .settings
 .idea
+.bash_profile
 
 # Ignore Gradle build output directory
 build
