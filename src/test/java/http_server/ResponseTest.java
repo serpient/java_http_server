@@ -15,7 +15,8 @@ public class ResponseTest {
     String user_agent = "User-Agent: HTTPTool/1.0" + crlf + crlf;
     String request = request_line + user_agent;
 
-    RequestParser requestParser = new RequestParser(request);
+    RequestParser parser = new RequestParser(request);
+    Request requestParser = new Request(parser.method(), parser.route(), parser.body(), parser.headers());
     Router mockRouter = new MockRouter().getRouter();
 
     private String currentDateTime() {

@@ -3,7 +3,6 @@ package http_server;
 import java.io.BufferedReader;
 import java.net.Socket;
 import java.io.IOException;
-import java.util.Arrays;
 
 public class ClientSocket implements SocketWrapper {
     private final Socket clientSocket;

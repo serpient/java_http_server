@@ -25,12 +25,12 @@ public class Router {
         updateCollection("POST", route, handler);
     }
 
-    public void runCallback(String method, String route, RequestParser req, Response res) {
+    public void runCallback(String method, String route, Request request, Response response) {
         HashMap<String, Callback> methodCollection = getMethodCollection(route);
         if (methodCollection.isEmpty() || methodCollection.get(method) == null) {
-            res.status("404 Not Found");
+            response.status("404 Not Found");
         } else {
-            methodCollection.get(method).run(req, res);
+            methodCollection.get(method).run(request, response);
         }
     }
 
