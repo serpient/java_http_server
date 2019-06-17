@@ -9,14 +9,15 @@ public class App {
     static Server server;
 
     public static void main(String args[]) {
-        app = new Router();
-        createRoutes();
+        app = createRouter();
 
         server = new Server(setPortNumber(args), app);
         server.start();
     }
 
-    private static void createRoutes() {
+    private static Router createRouter() {
+        Router app = new Router();
+
         app.get("/simple_get", (Request request, Response response) -> {});
 
         app.head("/simple_get", (Request request, Response response) -> {});
@@ -32,6 +33,8 @@ public class App {
         });
 
         app.post("/echo_body", (Request request, Response response) -> {});
+
+        return app;
     }
 
     private static int setPortNumber(String[] terminal_args) {
