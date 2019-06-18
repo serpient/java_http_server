@@ -4,20 +4,51 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ResponseBuilder {
     private Response response;
     private Request request;
+    private Router router;
+    private HashMap<String, Callback> methodCollection;
     private String crlf = "\r\n";
 
-    public ResponseBuilder(Response response, Request request) {
+    public ResponseBuilder(Response response, Request request, Router router) {
         this.response = response;
         this.request = request;
+        this.router = router;
+        this.methodCollection = router.getMethodCollection(request.getRoute());
     }
 
     public String build() {
-        return responseBuilder(buildStatus(), buildHeader(), buildBody());
+        if (methodCollection.isEmpty()) {
+            response.setStatus(StatusCode.NOT_FOUND.get());
+            return responseBuilder();
+        }
+
+        if (request.getMethod().equals("OPTIONS")) {
+            response.setHeader("Allow", createOptionsHeader());
+            return responseBuilder();
+        }
+
+        if (methodCollection.get(request.getMethod()) == null) {
+            response.setStatus(StatusCode.METHOD_NOT_ALLOWED.get());
+            response.setHeader("Allow", createOptionsHeader());
+            return responseBuilder();
+        }
+
+        if (hasBody(request.getBody())) {
+            String newBody = response.getBody();
+            newBody += request.getBody();
+            response.setBody(newBody);
+        }
+
+        router.runCallback(request, response);
+
+        return responseBuilder();
     }
 
     public String buildStatus() {
@@ -44,8 +75,8 @@ public class ResponseBuilder {
         }
     }
 
-    private String responseBuilder(String status, String header, String body) {
-        return status + header + body;
+    private String responseBuilder() {
+        return buildStatus() + buildHeader() + buildBody();
     }
 
     private String createHeaderString() {
@@ -72,5 +103,17 @@ public class ResponseBuilder {
 
     private boolean hasBody(String body) {
         return body == "" ? false : body.length() > 0;
+    }
+
+    private String createOptionsHeader() {
+        Set<String> availableMethods = new LinkedHashSet<>();
+        availableMethods.add("OPTIONS");
+        for (String m : router.getMethods()) {
+            if (methodCollection.containsKey(m)) {
+                availableMethods.add(m);
+            }
+        }
+
+        return availableMethods.toString().replaceAll("[\\[\\]]", "");
     }
 }

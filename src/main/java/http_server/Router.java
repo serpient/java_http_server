@@ -43,22 +43,14 @@ public class Router {
         }
     }
 
+    public Set<String> getMethods() {
+        return methods;
+    }
+
     public HashMap<String, Callback> getMethodCollection(String route) {
         return router.get(route) == null
                 ? new HashMap<>()
                 : router.get(route);
-    }
-
-    public String createOptionsHeader(HashMap<String, Callback> methodCollection) {
-        Set<String> availableMethods = new LinkedHashSet<>();
-        availableMethods.add("OPTIONS");
-        for (String m : methods) {
-            if (methodCollection.containsKey(m)) {
-                availableMethods.add(m);
-            }
-        }
-
-        return availableMethods.toString().replaceAll("[\\[\\]]", "");
     }
 
     public void runCallback(Request request, Response response) {
