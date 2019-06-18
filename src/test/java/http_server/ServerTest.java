@@ -155,7 +155,7 @@ public class ServerTest {
     public void Redirected_route_is_responded_with_301_And_New_Route() {
         String request = "GET /redirect HTTP/1.1";
         String responseLine = "HTTP/1.1 301 Moved Permanently" + crlf;
-        String location = "Location: http://localhost:5000/simple_get" + crlf;
+        String location = "Location: http://127.0.0.1:5000/simple_get" + crlf;
         String response = responseLine + location + dateHeader + serverHeader;
 
         MockClientSocket mockClientSocket = new MockClientSocket(request);
