@@ -1,48 +1,19 @@
 package http_server;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 public class Response {
-    private Request request;
-    private Router router;
     private ResponseBuilder responseBuilder;
     private LinkedHashMap<String, String> headerCollection = new LinkedHashMap<>();
-    private HashMap<String, Callback> methodCollection;
     private String status;
     private String responseBody = "";
 
     public Response(Request request, Router router) {
-        this.request = request;
-        this.router = router;
-        this.responseBuilder = new ResponseBuilder(this, request);
-        this.methodCollection = router.getMethodCollection(request.getRoute());
-        this.status = "200 OK";
+        this.responseBuilder = new ResponseBuilder(this, request, router);
+        this.status = StatusCode.OK.get();
     }
 
     public String generateResponse() {
-        if (methodCollection.isEmpty()) {
-            setStatus("404 Not Found");
-            return responseBuilder.build();
-        }
-
-        if (request.getMethod().equals("OPTIONS")) {
-            setHeader("Allow", router.createOptionsHeader(methodCollection));
-            return responseBuilder.build();
-        }
-
-        if (methodCollection.get(request.getMethod()) == null) {
-            setStatus("405 Method Not Allowed");
-            setHeader("Allow", router.createOptionsHeader(methodCollection));
-            return responseBuilder.build();
-        }
-
-        if (hasBody(request.getBody())) {
-            responseBody += request.getBody();
-        }
-
-        router.runCallback(request, this);
-
         return responseBuilder.build();
     }
 
@@ -71,11 +42,7 @@ public class Response {
     }
 
     public void redirect(String redirectedRoute) {
-        setStatus("301 Moved Permanently");
+        setStatus(StatusCode.MOVED.get());
         setHeader("Location", "http://localhost:5000" + redirectedRoute);
-    }
-
-    private boolean hasBody(String body) {
-        return body == "" ? false : body.length() > 0;
     }
 }

@@ -31,9 +31,9 @@ public class ResponseTest {
     @Test
     public void response_can_set_status() {
         Response response = new Response(requestParser, mockRouter);
-        ResponseBuilder builder = new ResponseBuilder(response, requestParser);
+        ResponseBuilder builder = new ResponseBuilder(response, requestParser, mockRouter);
 
-        response.setStatus("404 Not Found");
+        response.setStatus(StatusCode.NOT_FOUND.get());
         response.setHeader("Date", currentDateTime());
         response.setHeader("Server", "JavaServer/0.1");
 
@@ -45,7 +45,7 @@ public class ResponseTest {
     @Test
     public void response_can_add_custom_headers() {
         Response response = new Response(requestParser, mockRouter);
-        ResponseBuilder builder = new ResponseBuilder(response, requestParser);
+        ResponseBuilder builder = new ResponseBuilder(response, requestParser, mockRouter);
         response.setHeader("Date", currentDateTime());
         response.setHeader("Server", "JavaServer/0.1");
         response.setHeader("CustomHeader", "Hiya!");
@@ -60,7 +60,7 @@ public class ResponseTest {
     @Test
     public void response_can_change_body() {
         Response response = new Response(requestParser, mockRouter);
-        ResponseBuilder builder = new ResponseBuilder(response, requestParser);
+        ResponseBuilder builder = new ResponseBuilder(response, requestParser, mockRouter);
         String customBody = "This is my custom responseBody!";
         response.setBody(customBody);
 
