@@ -1,5 +1,6 @@
 package http_server;
 
+import Mocks.MockRouter;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ public class ResponseTest {
 
     RequestParser parser = new RequestParser(request);
     Request requestParser = new Request(parser.method(), parser.route(), parser.body(), parser.headers());
-    Router mockRouter = new MockRouter().getRouter();
+    Router mockRouter = new MockRouter().getApp();
 
     private String currentDateTime() {
         ZonedDateTime date = LocalDateTime.now().atZone(ZoneId.of("GMT+00"));
@@ -30,37 +31,47 @@ public class ResponseTest {
     @Test
     public void response_can_set_status() {
         Response response = new Response(requestParser, mockRouter);
-        response.status("404 Not Found");
-        response.header("Date", currentDateTime());
-        response.header("Server", "JavaServer/0.1");
+        ResponseBuilder builder = new ResponseBuilder(response, requestParser);
 
-        String returnedHeader = "HTTP/1.1 404 Not Found" + crlf +
-                "Date: " + currentDateTime() + crlf +
-                "Server: " + "JavaServer/0.1" + crlf;
+        response.setStatus("404 Not Found");
+        response.setHeader("Date", currentDateTime());
+        response.setHeader("Server", "JavaServer/0.1");
 
-        assertEquals(returnedHeader, response.getHeader());
+        String returnedHeader = "HTTP/1.1 404 Not Found" + crlf;
+
+        assertEquals(returnedHeader, builder.buildStatus());
     }
 
     @Test
     public void response_can_add_custom_headers() {
         Response response = new Response(requestParser, mockRouter);
-        response.header("Date", currentDateTime());
-        response.header("Server", "JavaServer/0.1");
-        response.header("CustomHeader", "Hiya!");
+        ResponseBuilder builder = new ResponseBuilder(response, requestParser);
+        response.setHeader("Date", currentDateTime());
+        response.setHeader("Server", "JavaServer/0.1");
+        response.setHeader("CustomHeader", "Hiya!");
 
-        String returnedHeader = "HTTP/1.1 200 OK" + crlf +
-                "Date: " + currentDateTime() + crlf +
+        String returnedHeader = "Date: " + currentDateTime() + crlf +
                 "Server: " + "JavaServer/0.1" + crlf +
                 "CustomHeader: Hiya!" + crlf;
 
-        assertEquals(returnedHeader, response.getHeader());
+        assertEquals(returnedHeader, builder.buildHeader());
     }
 
     @Test
     public void response_can_change_body() {
         Response response = new Response(requestParser, mockRouter);
+        ResponseBuilder builder = new ResponseBuilder(response, requestParser);
         String customBody = "This is my custom responseBody!";
-        response.body(customBody);
+        response.setBody(customBody);
+
+        assertEquals(crlf + customBody, builder.buildBody());
+    }
+
+    @Test
+    public void response_can_build_a_full_body_response() {
+        Response response = new Response(requestParser, mockRouter);
+        String customBody = "This is my custom responseBody!";
+        response.setBody(customBody);
 
         String returnedResponse = "HTTP/1.1 200 OK" + crlf +
                 "Date: " + currentDateTime() + crlf +
