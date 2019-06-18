@@ -1,48 +1,75 @@
 package http_server;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class Router {
-    private HashMap<String, HashMap<String, Callback>> collection;
+    private HashMap<String, HashMap<String, Callback>> router;
+    private Set<String> methods;
 
     public Router() {
-        this.collection = new HashMap<>();
+        this.router = new HashMap<>();
+        this.methods = new LinkedHashSet<>();
+        methods.add("GET");
+        methods.add("HEAD");
+        methods.add("POST");
+        methods.add("PUT");
     }
 
-    public HashMap<String, HashMap<String, Callback>> collection() {
-        return collection;
+    public HashMap<String, HashMap<String, Callback>> getRouter() {
+        return router;
     }
 
     public void get(String route, Callback handler) {
-        updateCollection("GET", route, handler);
+        updateRouter("GET", route, handler);
     }
 
     public void head(String route, Callback handler) {
-        updateCollection("HEAD", route, handler);
+        updateRouter("HEAD", route, handler);
     }
 
     public void post(String route, Callback handler) {
-        updateCollection("POST", route, handler);
+        updateRouter("POST", route, handler);
     }
 
-    public void runCallback(String method, String route, Request request, Response response) {
-        HashMap<String, Callback> methodCollection = getMethodCollection(route);
-        if (methodCollection.isEmpty() || methodCollection.get(method) == null) {
-            response.status("404 Not Found");
-        } else {
-            methodCollection.get(method).run(request, response);
+    public void put(String route, Callback handler) {
+        updateRouter("PUT", route, handler);
+    }
+
+    public void all(String route, Callback handler) {
+        for (String m : methods) {
+            updateRouter(m, route, handler);
         }
     }
 
-    private void updateCollection(String method, String route, Callback handler) {
-        HashMap<String, Callback> methodCollection = getMethodCollection(route);
-        methodCollection.put(method, handler);
-        collection.put(route, methodCollection);
+    public HashMap<String, Callback> getMethodCollection(String route) {
+        return router.get(route) == null
+                ? new HashMap<>()
+                : router.get(route);
     }
 
-    private HashMap<String, Callback> getMethodCollection(String route) {
-        return collection.get(route) == null
-            ? new HashMap<>()
-            : collection.get(route);
+    public String createOptionsHeader(HashMap<String, Callback> methodCollection) {
+        Set<String> availableMethods = new LinkedHashSet<>();
+        availableMethods.add("OPTIONS");
+        for (String m : methods) {
+            if (methodCollection.containsKey(m)) {
+                availableMethods.add(m);
+            }
+        }
+
+        return availableMethods.toString().replaceAll("[\\[\\]]", "");
+    }
+
+    public void runCallback(Request request, Response response) {
+        System.err.println(request.getRoute());
+        System.err.println(request.getMethod());
+        getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
+    }
+
+    private void updateRouter(String method, String route, Callback handler) {
+        HashMap<String, Callback> methodCollection = getMethodCollection(route);
+        methodCollection.put(method, handler);
+        router.put(route, methodCollection);
     }
 }

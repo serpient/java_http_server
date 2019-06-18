@@ -1,94 +1,78 @@
 package http_server;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class Response {
-    Request request;
-    Router router;
-    LinkedHashMap<String, String> headerCollection = new LinkedHashMap<>();
-    String status;
-    String responseBody = "";
-    String crlf = "\r\n";
+    private Request request;
+    private Router router;
+    private ResponseBuilder responseBuilder;
+    private LinkedHashMap<String, String> headerCollection = new LinkedHashMap<>();
+    private HashMap<String, Callback> methodCollection;
+    private String status;
+    private String responseBody = "";
 
     public Response(Request request, Router router) {
-        System.err.println(router);
         this.request = request;
         this.router = router;
+        this.responseBuilder = new ResponseBuilder(this, request);
+        this.methodCollection = router.getMethodCollection(request.getRoute());
         this.status = "200 OK";
     }
 
     public String generateResponse() {
-        String requestRoute = request.getRoute();
-        String requestMethod = request.getMethod();
-        String requestBody = request.getBody();
-
-        header("Date", currentDateTime());
-        header("Server", "JavaServer/0.1");
-        router.runCallback(requestMethod, requestRoute, request, this);
-
-        if (hasBody(requestBody)) {
-            responseBody += requestBody;
+        if (methodCollection.isEmpty()) {
+            setStatus("404 Not Found");
+            return responseBuilder.build();
         }
 
-        if (hasBody(responseBody)) {
-            header("Content-Type", "text/plain");
-            header("Content-Length", Integer.toString(getContentLength(responseBody)));
+        if (request.getMethod().equals("OPTIONS")) {
+            setHeader("Allow", router.createOptionsHeader(methodCollection));
+            return responseBuilder.build();
         }
 
-        String response = getHeader();
-
-        if (!requestMethod.equals("HEAD") && hasBody(responseBody)) {
-            response += crlf + responseBody;
+        if (methodCollection.get(request.getMethod()) == null) {
+            setStatus("405 Method Not Allowed");
+            setHeader("Allow", router.createOptionsHeader(methodCollection));
+            return responseBuilder.build();
         }
 
-        return response;
+        if (hasBody(request.getBody())) {
+            responseBody += request.getBody();
+        }
+
+        router.runCallback(request, this);
+
+        return responseBuilder.build();
     }
 
-    public String getHeader() {
-        String header = responseLine() + crlf;
-
-        for (Map.Entry<String, String> entry : headerCollection.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            header += key + ": " + value + crlf;
-        }
-
-        return header;
-    }
-
-    public void header(String headerName, String headerValue) {
+    public void setHeader(String headerName, String headerValue) {
         headerCollection.put(headerName, headerValue);
     }
 
-    public void status(String newStatus) {
+    public LinkedHashMap<String, String> getHeaders() {
+        return headerCollection;
+    }
+
+    public void setStatus(String newStatus) {
         this.status = newStatus;
     }
 
-    public void body(String newBody) {
+    public String getStatus() {
+        return status;
+    }
+
+    public void setBody(String newBody) {
         this.responseBody = newBody;
     }
 
-    public String getResponseBody() {
+    public String getBody() {
         return responseBody;
     }
 
-    private String responseLine() {
-        return "HTTP/1.1 " + status;
-    }
-
-    private String currentDateTime() {
-        ZonedDateTime date = LocalDateTime.now().atZone(ZoneId.of("GMT+00"));
-        DateTimeFormatter byPattern = DateTimeFormatter.ofPattern("E, MMM dd yyyy HH:mm:ss z");
-        return date.format(byPattern);
-    }
-
-    private int getContentLength(String body) {
-        return body.getBytes().length;
+    public void redirect(String redirectedRoute) {
+        setStatus("301 Moved Permanently");
+        setHeader("Location", "http://localhost:5000" + redirectedRoute);
     }
 
     private boolean hasBody(String body) {

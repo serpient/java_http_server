@@ -22,17 +22,32 @@ public class App {
 
         app.head("/simple_get", (Request request, Response response) -> {});
 
-        app.get("/get_with_body", (Request request, Response response) -> {
-            response.body("Here are all my favorite movies:\n" + "- Harry " +
-                    "Potter\n");
-        });
 
         app.head("/get_with_body", (Request request, Response response) -> {
-            response.body("Here are all my favorite movies:\n" + "- Harry " +
+            response.setBody("Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n");
         });
 
+
         app.post("/echo_body", (Request request, Response response) -> {});
+
+
+        app.get("/method_options", (Request request, Response response) -> {});
+
+        app.head("/method_options", (Request request, Response response) -> {});
+
+
+        app.get("/method_options2", (Request request, Response response) -> {});
+
+        app.head("/method_options2", (Request request, Response response) -> {});
+
+        app.put("/method_options2", (Request request, Response response) -> {});
+
+        app.post("/method_options2", (Request request, Response response) -> {});
+
+        app.all("/redirect", (Request request, Response response) -> {
+            response.redirect("/simple_get");
+        });
 
         return app;
     }
