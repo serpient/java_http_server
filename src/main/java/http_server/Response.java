@@ -43,6 +43,6 @@ public class Response {
 
     public void redirect(String redirectedRoute) {
         setStatus(StatusCode.MOVED.get());
-        setHeader("Location", "http://localhost:5000" + redirectedRoute);
+        setHeader("Location", "http://127.0.0.1:5000" + redirectedRoute);
     }
 }
