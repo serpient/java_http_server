@@ -1,4 +1,6 @@
-package http_server;
+package Mocks;
+
+import http_server.SocketWrapper;
 
 import java.io.BufferedReader;
 import java.io.IOException;

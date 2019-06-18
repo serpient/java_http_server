@@ -1,4 +1,6 @@
-package http_server;
+package Mocks;
+
+import http_server.WriterWrapper;
 
 public class MockWriter implements WriterWrapper {
     private String sentData;
