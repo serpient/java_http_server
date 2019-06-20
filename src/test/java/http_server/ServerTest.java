@@ -166,27 +166,30 @@ public class ServerTest {
         assertEquals(response, mockClientSocket.getSentData());
     }
 
+    String directoryBody = "<!DOCTYPE html>\n" +
+            "<html lang=\"en\">\n" +
+            "<head>\n" +
+            "<meta charset=\"UTF-8\">\n" +
+            "<title>Home Page</title>\n" +
+            "<style>.directory-page {    padding: 20px;    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\",    \"Droid Sans\", \"Helvetica Neue\", sans-serif;    font-size: 20px;}.bullets {    color: grey;    margin: 20px 0px;}h1 {    text-align: center;    color: dark-grey;    font-weight: 600;    font-size: 42px;}hr {    color: grey;    border-weight: 2px;}</style></head>\n" +
+            "<body>\n" +
+            "<div class='directory-page'><h1>Directory for /public</h1><hr /><ul>\n" +
+            "<li class='bullets'><a href='/public/Home.html'>Home.html</a></li>\n" +
+            "<li class='bullets'><a href='/public/TurtleTab.txt'>TurtleTab.txt</a></li>\n" +
+            "<li class='bullets'><a href='/public/japan.png'>japan.png</a></li>\n" +
+            "<li class='bullets'><a href='/public/water.png'>water.png</a></li>\n" +
+            "</ul>\n" +
+            "</div></body>\n" +
+            "</html>";
+
+
     @Test
     public void Navigating_to_static_directory_generates_HTML_Directory() {
         String request = "GET /public HTTP/1.1";
         String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
         String content_type = "Content-Type: text/html" + Stringer.crlf;
-        String content_length = "Content-Length: 209" + Stringer.crlf;
-        String body = Stringer.crlf + "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
-                "<meta charset=\"UTF-8\">\n" +
-                "<title>Home Page</title>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "<ul>\n" +
-                "<li>Home.html</li>\n" +
-                "<li>TurtleTab.txt</li>\n" +
-                "<li>japan.png</li>\n" +
-                "<li>water.png</li>\n" +
-                "</ul>\n" +
-                "</body>\n" +
-                "</html>";
+        String content_length = "Content-Length: 894" + Stringer.crlf;
+        String body = Stringer.crlf + directoryBody;
         String response = responseLine + content_type + dateHeader + serverHeader + content_length + body;
 
         MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -202,21 +205,35 @@ public class ServerTest {
         String request = "GET / HTTP/1.1";
         String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
         String content_type = "Content-Type: text/html" + Stringer.crlf;
-        String content_length = "Content-Length: 209" + Stringer.crlf;
-        String body = Stringer.crlf + "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
-                "<meta charset=\"UTF-8\">\n" +
-                "<title>Home Page</title>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "<ul>\n" +
-                "<li>Home.html</li>\n" +
-                "<li>TurtleTab.txt</li>\n" +
-                "<li>japan.png</li>\n" +
-                "<li>water.png</li>\n" +
-                "</ul>\n" +
-                "</body>\n" +
+        String content_length = "Content-Length: 894" + Stringer.crlf;
+        String body = Stringer.crlf + directoryBody;
+        String response = responseLine + content_type + dateHeader + serverHeader + content_length + body;
+
+        MockClientSocket mockClientSocket = new MockClientSocket(request);
+        Session session = new Session(mockClientSocket, router);
+
+        session.run();
+
+        assertEquals(response, mockClientSocket.getSentData());
+    }
+
+    @Test
+    public void navigating_to_directory_file_sends_back_file() {
+        String request = "GET /public/Home.html HTTP/1.1";
+        String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
+        String content_type = "Content-Type: text/html" + Stringer.crlf;
+        String content_length = "Content-Length: 226" + Stringer.crlf;
+        String body = Stringer.crlf + "<!DOCTYPE html>" +
+                "<html lang=\"en\">" +
+                "<head>" +
+                "    <meta charset=\"UTF-8\">" +
+                "    <title>Home Page</title>" +
+                "</head>" +
+                "<body BGCOLOR=\"FFFFFF\">" +
+                "<h1>HELLO!!</h1>" +
+                "<p>This is a very simple HTML document</p>" +
+                "<p>It only has two paragraphs</p>" +
+                "</body>" +
                 "</html>";
         String response = responseLine + content_type + dateHeader + serverHeader + content_length + body;
 
@@ -227,4 +244,9 @@ public class ServerTest {
 
         assertEquals(response, mockClientSocket.getSentData());
     }
+
+//    @Test
+//    public void navigating_to_directory_image_sends_back_image() {
+//
+//    }
 }

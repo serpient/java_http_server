@@ -33,18 +33,10 @@ public class Router {
 
     public void staticDirectory(String newStaticDirectoryPath) {
         staticDirectoryPath = Paths.get(basePath.toString(), newStaticDirectoryPath);
-        List<String> directoryContents = new FileHandler().readDirectoryContents(staticDirectoryPath.toString());
-        String directoryHTML = new DirectoryBuilder(directoryContents).generateHTML();
+        List<String> directoryContents = FileHandler.readDirectoryContents(staticDirectoryPath.toString());
 
-        get(newStaticDirectoryPath, (Request request, Response response) -> {
-            response.setBody(directoryHTML);
-            response.setHeader("Content-Type", "text/html");
-        });
-
-        get("/", (Request request, Response response) -> {
-            response.setBody(directoryHTML);
-            response.setHeader("Content-Type", "text/html");
-        });
+        createContentRoutes(directoryContents, newStaticDirectoryPath);
+        createStaticDirectoryRoute(directoryContents, newStaticDirectoryPath);
     }
 
     public void get(String route, Callback handler) {
@@ -87,5 +79,32 @@ public class Router {
         HashMap<String, Callback> methodCollection = getMethodCollection(route);
         methodCollection.put(method, handler);
         routes.put(route, methodCollection);
+    }
+
+    private void createStaticDirectoryRoute(List<String> directoryContents, String newStaticDirectoryPath) {
+        String directoryHTML = new DirectoryBuilder(directoryContents, newStaticDirectoryPath).generateHTML();
+
+        get(newStaticDirectoryPath, (Request request, Response response) -> {
+            response.setBody(directoryHTML);
+            response.setHeader("Content-Type", "text/html");
+        });
+
+        get("/", (Request request, Response response) -> {
+            response.setBody(directoryHTML);
+            response.setHeader("Content-Type", "text/html");
+        });
+    }
+
+    private void createContentRoutes(List<String> directoryContents, String newStaticDirectoryPath) {
+        for (int i = 0; i < directoryContents.size(); i++) {
+
+            String fileName = directoryContents.get(i);
+            String filePath = newStaticDirectoryPath + "/" +fileName;
+
+            get(filePath, (Request request, Response response) -> {
+                response.setBody(FileHandler.readFile(staticDirectoryPath + "/" + fileName));
+                response.setHeader("Content-Type", FileHandler.getFileType(filePath));
+            });
+        }
     }
 }

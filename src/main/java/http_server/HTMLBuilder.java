@@ -1,28 +1,41 @@
 package http_server;
 
 public class HTMLBuilder {
-    private String html;
+    private String body;
+    private String headerHTML;
 
     public HTMLBuilder() {
-        this.html = starterHTML();
+        this.body = "";
+        this.headerHTML = "";
     }
 
     public void append(String input) {
-        html += input;
+        body += input;
+    }
+
+    public void addHeader(String input) {
+        headerHTML += input;
     }
 
     public String generate() {
-        return html += endHtml();
+        return  starterHTML() + headHTML() + starterBody() + body + endHtml();
     }
 
     private String starterHTML() {
         return "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
+                "<html lang=\"en\">\n";
+    }
+
+    private String headHTML() {
+        return "<head>\n" +
                 "<meta charset=\"UTF-8\">\n" +
                 "<title>Home Page</title>\n" +
-                "</head>\n" +
-                "<body>\n";
+                headerHTML +
+                "</head>\n";
+    }
+
+    private String starterBody() {
+        return "<body>\n";
     }
 
     private String endHtml() {
