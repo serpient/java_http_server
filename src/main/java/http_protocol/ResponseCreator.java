@@ -1,4 +1,9 @@
-package http_server;
+package http_protocol;
+
+import http_server.Callback;
+import http_server.Request;
+import http_server.Response;
+import http_server.Router;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -9,34 +14,33 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ResponseBuilder {
+public class ResponseCreator {
     private Response response;
     private Request request;
     private Router router;
     private HashMap<String, Callback> methodCollection;
-    private String crlf = "\r\n";
 
-    public ResponseBuilder(Response response, Request request, Router router) {
+    public ResponseCreator(Response response, Request request, Router router) {
         this.response = response;
         this.request = request;
         this.router = router;
         this.methodCollection = router.getMethodCollection(request.getRoute());
     }
 
-    public String build() {
+    public String create() {
         if (methodCollection.isEmpty()) {
-            response.setStatus(StatusCode.NOT_FOUND.get());
+            response.setStatus(StatusCode.notFound);
             return responseBuilder();
         }
 
-        if (request.getMethod().equals("OPTIONS")) {
-            response.setHeader("Allow", createOptionsHeader());
+        if (request.getMethod().equals(Methods.options)) {
+            response.setHeader(Headers.allowedHeaders, createOptionsHeader());
             return responseBuilder();
         }
 
         if (methodCollection.get(request.getMethod()) == null) {
-            response.setStatus(StatusCode.METHOD_NOT_ALLOWED.get());
-            response.setHeader("Allow", createOptionsHeader());
+            response.setStatus(StatusCode.methodNotAllowed);
+            response.setHeader(Headers.allowedHeaders, createOptionsHeader());
             return responseBuilder();
         }
 
@@ -52,24 +56,24 @@ public class ResponseBuilder {
     }
 
     public String buildStatus() {
-        return "HTTP/1.1 " + response.getStatus() + crlf;
+        return "HTTP/1.1 " + response.getStatus() + Stringer.crlf;
     }
 
     public String buildHeader() {
-        response.setHeader("Date", currentDateTime());
-        response.setHeader("Server", "JavaServer/0.1");
+        response.setHeader(Headers.date, currentDateTime());
+        response.setHeader(Headers.server, "JavaServer/0.1");
 
         if (hasBody(response.getBody())) {
-            response.setHeader("Content-Type", "text/plain");
-            response.setHeader("Content-Length", Integer.toString(getContentLength(response.getBody())));
+            response.setHeader(Headers.contentType, "text/plain");
+            response.setHeader(Headers.contentLength, Integer.toString(getContentLength(response.getBody())));
         }
 
         return createHeaderString();
     }
 
     public String buildBody() {
-        if (!request.getMethod().equals("HEAD") && hasBody(response.getBody())) {
-            return crlf + response.getBody();
+        if (!request.getMethod().equals(Methods.head) && hasBody(response.getBody())) {
+            return Stringer.crlf + response.getBody();
         } else {
             return "";
         }
@@ -85,7 +89,7 @@ public class ResponseBuilder {
         for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            header += key + ": " + value + crlf;
+            header += key + ": " + value + Stringer.crlf;
         }
 
         return header;
@@ -107,10 +111,10 @@ public class ResponseBuilder {
 
     private String createOptionsHeader() {
         Set<String> availableMethods = new LinkedHashSet<>();
-        availableMethods.add("OPTIONS");
-        for (String m : router.getMethods()) {
-            if (methodCollection.containsKey(m)) {
-                availableMethods.add(m);
+        availableMethods.add(Methods.options);
+        for (String method : router.getMethods()) {
+            if (methodCollection.containsKey(method)) {
+                availableMethods.add(method);
             }
         }
 

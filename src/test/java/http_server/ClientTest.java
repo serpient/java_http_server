@@ -3,7 +3,7 @@
  */
 package http_server;
 
-import Mocks.MockWriter;
+import mocks.MockWriter;
 import org.junit.Test;
 
 import java.io.BufferedReader;

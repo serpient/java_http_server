@@ -1,5 +1,8 @@
 package http_server;
 
+import http_protocol.RequestCreator;
+import http_protocol.Stringer;
+
 public class Session implements Runnable {
     private final SocketWrapper client;
     private Router router;
@@ -25,8 +28,7 @@ public class Session implements Runnable {
 
             String input = client.readData();
 
-            RequestParser parser = new RequestParser(input);
-            Request request = new Request(parser.method(), parser.route(), parser.body(), parser.headers());
+            Request request = RequestCreator.from(input);
             String response = new Response(request, router).generateResponse();
 
             serverPrint(response);
@@ -44,7 +46,6 @@ public class Session implements Runnable {
     }
 
     private void serverPrint(String message) {
-        String crlf = "\r\n";
-        System.out.println(crlf + message + crlf);
+        System.out.println(Stringer.crlf + message + Stringer.crlf);
     }
 }

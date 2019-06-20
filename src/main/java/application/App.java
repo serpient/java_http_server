@@ -5,13 +5,10 @@ import http_server.Server;
 import http_server.Router;
 
 public class App {
-    static Router app;
-    static Server server;
-
     public static void main(String args[]) {
-        app = createRouter();
+        Router app = createRouter();
 
-        server = new Server(setPortNumber(args), app);
+        Server server = new Server(setPortNumber(args), app);
         server.start();
     }
 
@@ -22,20 +19,16 @@ public class App {
 
         app.head("/simple_get", (Request request, Response response) -> {});
 
-
         app.head("/get_with_body", (Request request, Response response) -> {
             response.setBody("Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n");
         });
 
-
         app.post("/echo_body", (Request request, Response response) -> {});
-
 
         app.get("/method_options", (Request request, Response response) -> {});
 
         app.head("/method_options", (Request request, Response response) -> {});
-
 
         app.get("/method_options2", (Request request, Response response) -> {});
 

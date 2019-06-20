@@ -1,5 +1,7 @@
 package http_server;
 
+import http_protocol.RequestCreator;
+import http_protocol.Stringer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,15 +13,13 @@ import static org.junit.Assert.assertEquals;
 public class RouterTest {
     Router router;
     HashMap<String, HashMap<String, Callback>> collection;
-    String crlf = "\r\n";
-    String request_line = "POST /echo_body HTTP/1.1" + crlf;
-    String user_agent = "User-Agent: HTTPTool/1.0" + crlf;
-    String content_type = "Content-Type: text/plain" + crlf;
-    String content_length = "Content-Length: 47" + crlf;
-    String body = crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
+    String request_line = "POST /echo_body HTTP/1.1" + Stringer.crlf;
+    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
+    String content_type = "Content-Type: text/plain" + Stringer.crlf;
+    String content_length = "Content-Length: 47" + Stringer.crlf;
+    String body = Stringer.crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
     String request = request_line + user_agent + content_type + content_length + body;
-    RequestParser parser = new RequestParser(request);
-    Request req = new Request(parser.method(), parser.route(), parser.body(), parser.headers());
+    Request req = RequestCreator.from(request);
     Response res = new Response(req, new Router());
 
     String anonymousFn_True_Result = "true";

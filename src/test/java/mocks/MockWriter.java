@@ -1,4 +1,4 @@
-package Mocks;
+package mocks;
 
 import http_server.WriterWrapper;
 

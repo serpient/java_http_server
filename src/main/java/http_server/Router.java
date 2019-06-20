@@ -1,45 +1,47 @@
 package http_server;
 
+import http_protocol.Methods;
+
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Router {
-    private HashMap<String, HashMap<String, Callback>> router;
+    private HashMap<String, HashMap<String, Callback>> routes;
     private Set<String> methods;
 
     public Router() {
-        this.router = new HashMap<>();
+        this.routes = new HashMap<>();
         this.methods = new LinkedHashSet<>();
-        methods.add("GET");
-        methods.add("HEAD");
-        methods.add("POST");
-        methods.add("PUT");
+        methods.add(Methods.get);
+        methods.add(Methods.head);
+        methods.add(Methods.post);
+        methods.add(Methods.put);
     }
 
     public HashMap<String, HashMap<String, Callback>> getRouter() {
-        return router;
+        return routes;
     }
 
     public void get(String route, Callback handler) {
-        updateRouter("GET", route, handler);
+        updateRoutes(Methods.get, route, handler);
     }
 
     public void head(String route, Callback handler) {
-        updateRouter("HEAD", route, handler);
+        updateRoutes(Methods.head, route, handler);
     }
 
     public void post(String route, Callback handler) {
-        updateRouter("POST", route, handler);
+        updateRoutes(Methods.post, route, handler);
     }
 
     public void put(String route, Callback handler) {
-        updateRouter("PUT", route, handler);
+        updateRoutes(Methods.put, route, handler);
     }
 
     public void all(String route, Callback handler) {
-        for (String m : methods) {
-            updateRouter(m, route, handler);
+        for (String method : methods) {
+            updateRoutes(method, route, handler);
         }
     }
 
@@ -48,20 +50,18 @@ public class Router {
     }
 
     public HashMap<String, Callback> getMethodCollection(String route) {
-        return router.get(route) == null
+        return routes.get(route) == null
                 ? new HashMap<>()
-                : router.get(route);
+                : routes.get(route);
     }
 
     public void runCallback(Request request, Response response) {
-        System.err.println(request.getRoute());
-        System.err.println(request.getMethod());
         getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
     }
 
-    private void updateRouter(String method, String route, Callback handler) {
+    private void updateRoutes(String method, String route, Callback handler) {
         HashMap<String, Callback> methodCollection = getMethodCollection(route);
         methodCollection.put(method, handler);
-        router.put(route, methodCollection);
+        routes.put(route, methodCollection);
     }
 }
