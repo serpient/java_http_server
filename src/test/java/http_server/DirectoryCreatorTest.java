@@ -5,12 +5,12 @@ import org.junit.Test;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 
-public class DirectoryBuilderTest {
+public class DirectoryCreatorTest {
     @Test
     public void static_files_in_public_directory_are_rendered_as_a_HTML_page_with_contents_listed() {
         String path = "/Users/fsadikin/documents/java_http_server/public";
         List<String> directoryContents = new FileHandler().readDirectoryContents(path);
-        DirectoryBuilder directoryBuilder = new DirectoryBuilder(directoryContents, "/public");
+        DirectoryCreator directoryCreator = new DirectoryCreator(directoryContents, "/public");
 
         String directoryBody = "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
@@ -28,6 +28,6 @@ public class DirectoryBuilderTest {
                 "</div></body>\n" +
                 "</html>";
 
-        assertEquals(directoryBody, directoryBuilder.generateHTML());
+        assertEquals(directoryBody, directoryCreator.generateHTML());
     }
 }

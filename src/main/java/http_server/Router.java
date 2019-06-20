@@ -1,5 +1,6 @@
 package http_server;
 
+import http_protocol.Headers;
 import http_protocol.Methods;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -82,16 +83,16 @@ public class Router {
     }
 
     private void createStaticDirectoryRoute(List<String> directoryContents, String newStaticDirectoryPath) {
-        String directoryHTML = new DirectoryBuilder(directoryContents, newStaticDirectoryPath).generateHTML();
+        String directoryHTML = new DirectoryCreator(directoryContents, newStaticDirectoryPath).generateHTML();
 
         get(newStaticDirectoryPath, (Request request, Response response) -> {
             response.setBody(directoryHTML);
-            response.setHeader("Content-Type", "text/html");
+            response.setHeader(Headers.contentType, "text/html");
         });
 
         get("/", (Request request, Response response) -> {
             response.setBody(directoryHTML);
-            response.setHeader("Content-Type", "text/html");
+            response.setHeader(Headers.contentType, "text/html");
         });
     }
 
@@ -103,7 +104,7 @@ public class Router {
 
             get(filePath, (Request request, Response response) -> {
                 response.setBody(FileHandler.readFile(staticDirectoryPath + "/" + fileName));
-                response.setHeader("Content-Type", FileHandler.getFileType(filePath));
+                response.setHeader(Headers.contentType, FileHandler.getFileType(filePath));
             });
         }
     }

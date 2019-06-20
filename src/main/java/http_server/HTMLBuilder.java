@@ -9,12 +9,14 @@ public class HTMLBuilder {
         this.headerHTML = "";
     }
 
-    public void append(String input) {
+    public HTMLBuilder append(String input) {
         body += input;
+        return this;
     }
 
-    public void addHeader(String input) {
+    public HTMLBuilder addHeader(String input) {
         headerHTML += input;
+        return this;
     }
 
     public String generate() {
