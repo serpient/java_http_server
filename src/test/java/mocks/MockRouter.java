@@ -4,6 +4,8 @@ import http_server.Request;
 import http_server.Response;
 import http_server.Router;
 
+import java.nio.file.Paths;
+
 public class MockRouter {
     public Router getApp() {
         return createRouter();
@@ -11,6 +13,10 @@ public class MockRouter {
 
     private Router createRouter() {
         Router app = new Router();
+
+        app.basePath(Paths.get(System.getProperty("user.dir")));
+
+        app.staticDirectory("/public");
 
         app.get("/simple_get", (Request request, Response response) -> {});
 

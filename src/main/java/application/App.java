@@ -4,6 +4,9 @@ import http_server.Response;
 import http_server.Server;
 import http_server.Router;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class App {
     public static void main(String args[]) {
         Router app = createRouter();
@@ -14,6 +17,10 @@ public class App {
 
     private static Router createRouter() {
         Router app = new Router();
+
+        app.basePath(getProjectBasePath());
+
+        app.staticDirectory("/public");
 
         app.get("/simple_get", (Request request, Response response) -> {});
 
@@ -42,6 +49,7 @@ public class App {
             response.redirect("/simple_get");
         });
 
+
         return app;
     }
 
@@ -49,5 +57,9 @@ public class App {
         return terminal_args.length > 0
                 ? Integer.parseInt(terminal_args[0])
                 : 5000;
+    }
+
+    private static Path getProjectBasePath() {
+        return Paths.get(System.getProperty("user.dir"));
     }
 }

@@ -1,14 +1,18 @@
 package http_server;
 
 import http_protocol.Methods;
-
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Router {
     private HashMap<String, HashMap<String, Callback>> routes;
     private Set<String> methods;
+    private Path basePath;
+    private Path staticDirectoryPath;
 
     public Router() {
         this.routes = new HashMap<>();
@@ -21,6 +25,26 @@ public class Router {
 
     public HashMap<String, HashMap<String, Callback>> getRouter() {
         return routes;
+    }
+
+    public void basePath(Path path) {
+        this.basePath = path;
+    }
+
+    public void staticDirectory(String newStaticDirectoryPath) {
+        staticDirectoryPath = Paths.get(basePath.toString(), newStaticDirectoryPath);
+        List<String> directoryContents = new FileHandler().readDirectoryContents(staticDirectoryPath.toString());
+        String directoryHTML = new DirectoryBuilder(directoryContents).generateHTML();
+
+        get(newStaticDirectoryPath, (Request request, Response response) -> {
+            response.setBody(directoryHTML);
+            response.setHeader("Content-Type", "text/html");
+        });
+
+        get("/", (Request request, Response response) -> {
+            response.setBody(directoryHTML);
+            response.setHeader("Content-Type", "text/html");
+        });
     }
 
     public void get(String route, Callback handler) {

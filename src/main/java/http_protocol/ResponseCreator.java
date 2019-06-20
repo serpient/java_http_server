@@ -64,7 +64,9 @@ public class ResponseCreator {
         response.setHeader(Headers.server, "JavaServer/0.1");
 
         if (hasBody(response.getBody())) {
-            response.setHeader(Headers.contentType, "text/plain");
+            if (response.getHeaders().get(Headers.contentType) == null) {
+                response.setHeader(Headers.contentType, "text/plain");
+            }
             response.setHeader(Headers.contentLength, Integer.toString(getContentLength(response.getBody())));
         }
 

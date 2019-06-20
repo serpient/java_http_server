@@ -165,4 +165,66 @@ public class ServerTest {
 
         assertEquals(response, mockClientSocket.getSentData());
     }
+
+    @Test
+    public void Navigating_to_static_directory_generates_HTML_Directory() {
+        String request = "GET /public HTTP/1.1";
+        String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
+        String content_type = "Content-Type: text/html" + Stringer.crlf;
+        String content_length = "Content-Length: 209" + Stringer.crlf;
+        String body = Stringer.crlf + "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "<meta charset=\"UTF-8\">\n" +
+                "<title>Home Page</title>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<ul>\n" +
+                "<li>Home.html</li>\n" +
+                "<li>TurtleTab.txt</li>\n" +
+                "<li>japan.png</li>\n" +
+                "<li>water.png</li>\n" +
+                "</ul>\n" +
+                "</body>\n" +
+                "</html>";
+        String response = responseLine + content_type + dateHeader + serverHeader + content_length + body;
+
+        MockClientSocket mockClientSocket = new MockClientSocket(request);
+        Session session = new Session(mockClientSocket, router);
+
+        session.run();
+
+        assertEquals(response, mockClientSocket.getSentData());
+    }
+
+    @Test
+    public void Navigating_to_Base_path_generates_HTML_Directory() {
+        String request = "GET / HTTP/1.1";
+        String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
+        String content_type = "Content-Type: text/html" + Stringer.crlf;
+        String content_length = "Content-Length: 209" + Stringer.crlf;
+        String body = Stringer.crlf + "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "<meta charset=\"UTF-8\">\n" +
+                "<title>Home Page</title>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<ul>\n" +
+                "<li>Home.html</li>\n" +
+                "<li>TurtleTab.txt</li>\n" +
+                "<li>japan.png</li>\n" +
+                "<li>water.png</li>\n" +
+                "</ul>\n" +
+                "</body>\n" +
+                "</html>";
+        String response = responseLine + content_type + dateHeader + serverHeader + content_length + body;
+
+        MockClientSocket mockClientSocket = new MockClientSocket(request);
+        Session session = new Session(mockClientSocket, router);
+
+        session.run();
+
+        assertEquals(response, mockClientSocket.getSentData());
+    }
 }
