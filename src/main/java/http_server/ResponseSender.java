@@ -31,20 +31,20 @@ public class ResponseSender {
     public void sendBinary() {
         if (methodCollection.isEmpty()) {
             response.setStatus(StatusCode.notFound);
-            client.sendBinary(buildFullHeader().getBytes());
+            client.sendData(buildFullHeader());
             return;
         }
 
         if (request.getMethod().equals(Methods.options)) {
             response.setHeader(Headers.allowedHeaders, createOptionsHeader());
-            client.sendBinary(buildFullHeader().getBytes());
+            client.sendData(buildFullHeader());
             return;
         }
 
         if (methodCollection.get(request.getMethod()) == null) {
             response.setStatus(StatusCode.methodNotAllowed);
             response.setHeader(Headers.allowedHeaders, createOptionsHeader());
-            client.sendBinary(buildFullHeader().getBytes());
+            client.sendData(buildFullHeader());
             return;
         }
 
@@ -58,11 +58,11 @@ public class ResponseSender {
         }
 
         if (hasBody(response.getBody())) {
-            client.sendBinary((buildFullHeader() + buildBody()).getBytes());
+            client.sendData(buildFullHeader() + buildBody());
             return;
         }
 
-        client.sendBinary(buildFullHeader().getBytes());
+        client.sendData(buildFullHeader());
         return;
     }
 
