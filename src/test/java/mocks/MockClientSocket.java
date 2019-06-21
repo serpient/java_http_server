@@ -4,11 +4,14 @@ import http_server.SocketWrapper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 
 public class MockClientSocket implements SocketWrapper {
     private MockWriter mockWriter;
     private BufferedReader inputStream;
+    private OutputStream outputStream;
     char[] characterBuffer = new char[100000];
 
     public MockClientSocket(String input) {
@@ -39,5 +42,14 @@ public class MockClientSocket implements SocketWrapper {
 
     public boolean ready() {
         return true;
+    }
+
+    public void setOutputStream(OutputStream outputStream) {
+        this.outputStream = outputStream;
+    }
+
+    public void sendBinary(byte[] binary) {
+        String response = new String(binary, Charset.forName("UTF-8"));
+        sendData(response);
     }
 }

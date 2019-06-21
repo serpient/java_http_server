@@ -17,7 +17,7 @@ public class DirectoryCreator {
 
         return builder
             .addHeader("<style>")
-            .addHeader(FileHandler.readFile(directoryCSSPath))
+            .addHeader(FileHandler.getFileContents(directoryCSSPath))
             .addHeader("</style>")
             .append("<div class='directory-page'>")
             .append("<h1>Directory for " + newStaticDirectoryPath + "</h1>")

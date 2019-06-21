@@ -2,8 +2,6 @@ package http_server;
 
 import org.junit.Test;
 
-import java.awt.image.BufferedImage;
-
 import static org.junit.Assert.assertEquals;
 
 public class FileHandlerTest {
@@ -34,7 +32,7 @@ public class FileHandlerTest {
                 "<p>It only has two paragraphs</p>" +
                 "</body>" +
                 "</html>";
-        assertEquals(homeHTML, fileHandler.readFile(path));
+        assertEquals(homeHTML, fileHandler.getFileContents(path));
     }
 
     @Test
@@ -50,7 +48,7 @@ public class FileHandlerTest {
         String path = "./public/TurtleTab.txt";
         String homeHTML = "TurtleTab is a Google Chrome Extension Built with React. It creates a new homepage which " +
                 "features current Weather, Todo and Notes functionality. It also accesses your browser data to see Bookmarks, enable/disable Apps and Extensions, and see/clear your History. It is a collaborative effort by a remote team of aspiring developers who met on Chingu, an international community of coders.";
-        assertEquals(homeHTML, fileHandler.readFile(path));
+        assertEquals(homeHTML, fileHandler.getFileContents(path));
     }
 
     @Test
@@ -63,9 +61,10 @@ public class FileHandlerTest {
     @Test
     public void image_file_can_be_read_from_public_directory() {
         FileHandler fileHandler = new FileHandler();
-        String path = "./public/japan.png";
-        BufferedImage image = fileHandler.readImage(path);
-        assertEquals("class java.awt.image.BufferedImage", image.getClass().toString());
+        String path = "./public/water.png";
+        byte[] image = fileHandler.readFile(path);
+        int imageContentLength = 1448876;
+        assertEquals(imageContentLength, image.length);
     }
 
     @Test

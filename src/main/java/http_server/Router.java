@@ -2,6 +2,7 @@ package http_server;
 
 import http_protocol.Headers;
 import http_protocol.Methods;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -86,13 +87,8 @@ public class Router {
         String directoryHTML = new DirectoryCreator(directoryContents, newStaticDirectoryPath).generateHTML();
 
         get(newStaticDirectoryPath, (Request request, Response response) -> {
-            response.setBody(directoryHTML);
             response.setHeader(Headers.contentType, "text/html");
-        });
-
-        get("/", (Request request, Response response) -> {
             response.setBody(directoryHTML);
-            response.setHeader(Headers.contentType, "text/html");
         });
     }
 
@@ -103,7 +99,12 @@ public class Router {
             String filePath = newStaticDirectoryPath + "/" +fileName;
 
             get(filePath, (Request request, Response response) -> {
-                response.setBody(FileHandler.readFile(staticDirectoryPath + "/" + fileName));
+                if (FileHandler.getFileType(filePath).matches("image(.*)")) {
+                    byte[] img = FileHandler.readFile(staticDirectoryPath + "/" + fileName);
+                    response.saveBinary(img);
+                } else {
+                    response.setBody(FileHandler.getFileContents(staticDirectoryPath + "/" + fileName));
+                }
                 response.setHeader(Headers.contentType, FileHandler.getFileType(filePath));
             });
         }

@@ -1,7 +1,5 @@
 package http_server;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -25,27 +23,24 @@ public class FileHandler {
                 fileList.add(file.getFileName().toString());
             }
         } catch (IOException | DirectoryIteratorException x) {
-            // IOException can never be thrown by the iteration.
-            // In this snippet, it can only be thrown by newDirectoryStream.
             System.err.println(x);
         }
         Collections.sort(fileList);
         return fileList;
     }
 
-    public static BufferedImage readImage(String path) {
-        Path image = Paths.get(path);
+    public static byte[] readFile(String path) {
+        Path file = Paths.get(path);
         try {
-            BufferedImage img = ImageIO.read(image.toFile());
-            System.err.println(img);
-            return img;
+            byte[] fileBytes = Files.readAllBytes(file);
+            return fileBytes;
         } catch (IOException e) {
             System.err.println(e);
             return null;
         }
     }
 
-    public static String readFile(String path) {
+    public static String getFileContents(String path) {
         String fileContents = "";
         Path file = Paths.get(path);
 
@@ -56,7 +51,6 @@ public class FileHandler {
             try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
                 String line = null;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
                     fileContents += line;
                 }
             } catch (IOException x) {
@@ -67,11 +61,6 @@ public class FileHandler {
         }
 
         return fileContents;
-    }
-
-    public static String getFileName(String path) {
-        Path file = Paths.get(path);
-        return file.getFileName().toString();
     }
 
     public static String getFileType(String path) {

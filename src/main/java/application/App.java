@@ -1,4 +1,5 @@
 package application;
+import http_protocol.Headers;
 import http_server.Request;
 import http_server.Response;
 import http_server.Server;
@@ -22,6 +23,10 @@ public class App {
 
         app.staticDirectory("/public");
 
+        app.get("/", (Request request, Response response) -> {
+            response.redirect("/public");
+        });
+
         app.get("/simple_get", (Request request, Response response) -> {});
 
         app.head("/simple_get", (Request request, Response response) -> {});
@@ -31,7 +36,9 @@ public class App {
                     "Potter\n");
         });
 
-        app.post("/echo_body", (Request request, Response response) -> {});
+        app.post("/echo_body", (Request request, Response response) -> {
+            response.setBody(request.getBody());
+        });
 
         app.get("/method_options", (Request request, Response response) -> {});
 

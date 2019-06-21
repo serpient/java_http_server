@@ -1,9 +1,6 @@
 package http_server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
@@ -34,11 +31,13 @@ public class Server {
                 clientSocket = server.accept();
 
                 Boolean autoFlushWriter = true;
-                PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), autoFlushWriter);
-                WriterWrapper outputStream = new PrintWriterWrapper(printWriter);
+                OutputStream outputStream = clientSocket.getOutputStream();
+                PrintWriter printWriter = new PrintWriter(outputStream, autoFlushWriter);
+                WriterWrapper writer = new PrintWriterWrapper(printWriter);
                 BufferedReader inputStream = new BufferedReader((new InputStreamReader(clientSocket.getInputStream())));
 
-                ClientSocket clientSocketWrapper = new ClientSocket(clientSocket, inputStream, outputStream);
+                ClientSocket clientSocketWrapper = new ClientSocket(clientSocket, inputStream, writer);
+                clientSocketWrapper.setOutputStream(outputStream);
 
                 Session session = new Session(clientSocketWrapper, router);
 

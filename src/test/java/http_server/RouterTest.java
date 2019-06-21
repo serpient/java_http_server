@@ -21,7 +21,7 @@ public class RouterTest {
     String body = Stringer.crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
     String request = request_line + user_agent + content_type + content_length + body;
     Request req = RequestCreator.from(request);
-    Response res = new Response(req, new Router());
+    Response res = new Response();
 
     String anonymousFn_True_Result = "true";
     Callback anonymousFn_True = (Request req, Response res) -> {

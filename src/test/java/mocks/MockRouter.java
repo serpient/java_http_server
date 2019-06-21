@@ -18,6 +18,10 @@ public class MockRouter {
 
         app.staticDirectory("/public");
 
+        app.get("/", (Request request, Response response) -> {
+            response.redirect("/public");
+        });
+
         app.get("/simple_get", (Request request, Response response) -> {});
 
         app.head("/simple_get", (Request request, Response response) -> {});
@@ -27,13 +31,14 @@ public class MockRouter {
                     "Potter\n");
         });
 
-
         app.get("/harry_potter", (Request request, Response response) -> {
             response.setBody("Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n");
         });
 
-        app.post("/echo_body", (Request request, Response response) -> {});
+        app.post("/echo_body", (Request request, Response response) -> {
+            response.setBody(request.getBody());
+        });
 
         app.get("/method_options", (Request request, Response response) -> {});
 

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 public class DirectoryCreatorTest {
     @Test
     public void static_files_in_public_directory_are_rendered_as_a_HTML_page_with_contents_listed() {
-        String path = "/Users/fsadikin/documents/java_http_server/public";
+        String path = "./public";
         List<String> directoryContents = new FileHandler().readDirectoryContents(path);
         DirectoryCreator directoryCreator = new DirectoryCreator(directoryContents, "/public");
 
