@@ -5,14 +5,12 @@ import http_protocol.StatusCode;
 import http_protocol.Stringer;
 import mocks.MockClientSocket;
 import mocks.MockRouter;
-import org.junit.Test;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResponseTest {
     String request_line = "GET /simple_get HTTP/1.1" + Stringer.crlf;

@@ -3,14 +3,14 @@ package http_server;
 import http_protocol.Stringer;
 import mocks.MockClientSocket;
 import mocks.MockRouter;
-import org.junit.Test;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServerTest {
     private String currentDateTime() {
@@ -255,5 +255,43 @@ public class ServerTest {
         int imageContentLength = 1367902;
 
         assertEquals(imageContentLength, mockClientSocket.getSentData().length());
+    }
+
+    @Test
+    public void post_request_can_save_resource_under_new_route() {
+        String content_type = "Content-Type: text/plain" + Stringer.crlf;
+        String content_length = "Content-Length: 47" + Stringer.crlf;
+        String body = Stringer.crlf + "Dog Breed: Corgi";
+
+        assertAll("post request",
+            () -> {
+                String request_line = "POST /dog/1 HTTP/1.1" + Stringer.crlf;
+                String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
+                String request = request_line + user_agent + content_type + content_length + body;
+
+                String responseLine = "HTTP/1.1 201 Created" + Stringer.crlf;
+                String location = "Location: http://127.0.0.1:5000/public/dog/1" + Stringer.crlf;
+                String response = responseLine + location + dateHeader + serverHeader;
+
+                MockClientSocket mockClientSocket = new MockClientSocket(request);
+                Session session = new Session(mockClientSocket, router);
+
+                session.run();
+
+                assertEquals(response, mockClientSocket.getSentData());
+            },
+            () -> {
+                String request = "GET /dog/1 HTTP/1.1";
+                String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
+                String response = responseLine + content_type + dateHeader + serverHeader + content_length + body;
+
+                MockClientSocket mockClientSocket = new MockClientSocket(request);
+                Session session = new Session(mockClientSocket, router);
+
+                session.run();
+
+                assertEquals(response, mockClientSocket.getSentData());
+            }
+        );
     }
 }

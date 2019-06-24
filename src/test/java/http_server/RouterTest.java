@@ -2,14 +2,12 @@ package http_server;
 
 import http_protocol.RequestCreator;
 import http_protocol.Stringer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.nio.file.Paths;
 import java.util.HashMap;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RouterTest {
     Router router;
@@ -33,13 +31,13 @@ public class RouterTest {
         res.setBody(anonymousFn_False_Result);
     };
 
-    @Before
+    @BeforeEach
     public void initializeRouter() {
         router = new Router();
         collection = router.getRouter();
     }
 
-    @After
+    @AfterEach
     public void cleanUpRouter() {
         collection.clear();
     }
