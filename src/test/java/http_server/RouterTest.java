@@ -151,4 +151,26 @@ public class RouterTest {
 
         assertEquals(true, collection.get("/public/Home.html").containsKey("GET"));
     }
+
+    @Test
+    public void Router_can_find_next_next_largest_id_for_a_parent_route() {
+        router.get("/dog/1", (Request request, Response response) -> {
+            response.sendFile(request.getRoute());
+        });
+
+        router.get("/dog/3", (Request request, Response response) -> {
+            response.sendFile(request.getRoute());
+        });
+
+        router.post("/dog/5", (Request request, Response response) -> {
+
+        });
+
+        assertEquals(6, router.getAvailableRouteId("/dog"));
+    }
+
+    @Test
+    public void Router_can_set_first_resource_id_for_a_parent_route() {
+        assertEquals(1, router.getAvailableRouteId("/dog"));
+    }
 }

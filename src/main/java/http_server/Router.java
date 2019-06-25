@@ -5,10 +5,16 @@ import http_protocol.Headers;
 import http_protocol.Methods;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Router {
     private HashMap<String, HashMap<String, Callback>> routes;
@@ -91,6 +97,31 @@ public class Router {
         get(path, (Request request, Response response) -> {
             response.sendFile(path + "." + fileType);
         });
+    }
+
+    public int getAvailableRouteId(String route) {
+        Stream<String> matchingRoutes = findMatchingRoutes(route);
+
+        if (matchingRoutes.count() == 0) {
+            return 1;
+        } else {
+            int maxId = routes.keySet()
+                    .stream()
+                    .filter(s -> s.startsWith(route + "/") && !s.endsWith(":id"))
+                    .map(s -> {
+                        int idx = s.lastIndexOf("/");
+                        return Integer.parseInt(s.substring(idx + 1));
+                    })
+                    .max(Comparator.comparing(Integer::valueOf)).get();
+
+            return maxId + 1;
+        }
+    }
+
+    private Stream<String> findMatchingRoutes(String route) {
+        return routes.keySet()
+                .stream()
+                .filter(s -> s.startsWith(route + "/") && !s.endsWith(":id"));
     }
 
     private void updateRoutes(String method, String route, Callback handler) {

@@ -6,6 +6,7 @@ import mocks.MockClientSocket;
 import mocks.MockRouter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,14 +17,14 @@ public class ServerTest {
     @BeforeEach
     public void prepFiles() {
         FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/echo_body.txt");
+        FileHandler.deleteDirectory("./public/dog.txt");
     }
 
 
     @AfterEach
     public void cleanUpFiles() {
         FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/echo_body.txt");
+        FileHandler.deleteDirectory("./public/dog.txt");
     }
 
     @Test
@@ -68,7 +69,7 @@ public class ServerTest {
     }
 
     @Test
-    public void HEAD_Request_Is_Responded_With_Headers_Only_Even_If_Body_Exists() {
+    public void HEAD_request_is_responded_with_headers_only_even_if_body_exists() {
         String request = "HEAD /get_with_body HTTP/1.1";
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -83,7 +84,7 @@ public class ServerTest {
 
 
     @Test
-    public void GET_Request_Is_Responded_with_404_When_Resource_Invalid() {
+    public void GET_request_is_responded_with_404_when_resource_invalid() {
         String request = "GET /resource_not_found HTTP/1.1";
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -94,7 +95,7 @@ public class ServerTest {
     }
 
     @Test
-    public void POST_Request_Is_Responded_with_Headers_And_Echoed_Post_Value() {
+    public void POST_request_is_responded_with_headers_and_echoed_post_value() {
         String request_line = "POST /echo_body HTTP/1.1" + Stringer.crlf;
         String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
         String content_type = "Content-Type: text/plain" + Stringer.crlf;
@@ -112,7 +113,7 @@ public class ServerTest {
     }
 
     @Test
-    public void OPTIONS_Request_Is_Responded_With_Current_Methods_Available_On_Route() {
+    public void OPTIONS_request_is_responded_with_current_methods_available_On_route() {
         String request = "OPTIONS /method_options HTTP/1.1";
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -124,7 +125,7 @@ public class ServerTest {
     }
 
     @Test
-    public void Valid_Route_But_Invalid_Method_Is_Responded_With_405_Not_Allowed() {
+    public void valid_route_but_invalid_method_is_responded_with_405_not_allowed() {
         String request = "GET /get_with_body HTTP/1.1";
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -136,7 +137,7 @@ public class ServerTest {
     }
 
     @Test
-    public void Redirected_route_is_responded_with_301_And_New_Route() {
+    public void redirected_route_is_responded_with_301_and_new_route() {
         String request = "GET /redirect HTTP/1.1";
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -165,7 +166,7 @@ public class ServerTest {
 
 
     @Test
-    public void Navigating_to_static_directory_generates_HTML_Directory() {
+    public void navigating_to_static_directory_generates_HTML_directory() {
         String request = "GET /public HTTP/1.1";
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -174,12 +175,11 @@ public class ServerTest {
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
-        assertEquals("894", Parser.getHeaders(response).get("Content-Length"));
         assertEquals(directoryBody, Parser.getBody(response));
     }
 
     @Test
-    public void Navigating_to_Base_path_redirects_to_Static_directory() {
+    public void navigating_to_base_path_redirects_to_static_directory() {
         String request = "GET / HTTP/1.1";
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -239,7 +239,7 @@ public class ServerTest {
 
         assertAll("post request",
             () -> {
-                String request_line = "POST /dog/1 HTTP/1.1" + Stringer.crlf;
+                String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
                 String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                 String request = request_line + user_agent + content_type + content_length + body;
                 MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -274,7 +274,7 @@ public class ServerTest {
 
         assertAll("post request",
                 () -> {
-                    String request_line = "POST /dog/3 HTTP/1.1" + Stringer.crlf;
+                    String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
                     String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                     String request = request_line + user_agent + content_type + content_length + body;
                     MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -283,11 +283,11 @@ public class ServerTest {
                     String response = mockClientSocket.getSentData();
 
                     assertEquals("201", Parser.getStatusCode(response));
-                    assertEquals("/dog/3", Parser.getHeaders(response).get("Location"));
+                    assertEquals("/dog/1", Parser.getHeaders(response).get("Location"));
                     assertEquals(null, Parser.getBody(response));
                 },
                 () -> {
-                    String request = "GET /dog/3 HTTP/1.1";
+                    String request = "GET /dog/1 HTTP/1.1";
                     MockClientSocket mockClientSocket = new MockClientSocket(request);
                     Session session = new Session(mockClientSocket, router);
 
@@ -306,7 +306,7 @@ public class ServerTest {
     public void post_request_with_no_body_does_not_create_a_resource() {
         assertAll("post request",
                 () -> {
-                    String request_line = "POST /dog/5 HTTP/1.1" + Stringer.crlf;
+                    String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
                     String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                     String request = request_line + user_agent;
                     MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -318,7 +318,7 @@ public class ServerTest {
                     assertEquals(null, Parser.getBody(response));
                 },
                 () -> {
-                    String request = "GET /dog/5 HTTP/1.1";
+                    String request = "GET /dog/1 HTTP/1.1";
                     MockClientSocket mockClientSocket = new MockClientSocket(request);
                     Session session = new Session(mockClientSocket, router);
 
@@ -326,7 +326,7 @@ public class ServerTest {
 
                     String response = mockClientSocket.getSentData();
 
-                    assertEquals("405", Parser.getStatusCode(response));
+                    assertEquals("404", Parser.getStatusCode(response));
                 }
         );
     }

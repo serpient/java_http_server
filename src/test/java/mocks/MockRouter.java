@@ -1,10 +1,14 @@
 package mocks;
 
+import file_handler.FileHandler;
+import http_protocol.Headers;
+import http_protocol.MIMETypes;
 import http_protocol.StatusCode;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class MockRouter {
@@ -40,6 +44,7 @@ public class MockRouter {
         app.post("/echo_body", (Request request, Response response) -> {
             response.setStatus(StatusCode.ok);
             response.setBody(request.getBody());
+            response.setHeader(Headers.location, request.getRoute());
         });
 
         app.get("/method_options", (Request request, Response response) -> {});
@@ -50,24 +55,13 @@ public class MockRouter {
             response.redirect("/simple_get");
         });
 
-        app.post("/dog/1", (Request request, Response response) -> {
-
-        });
-
-        app.get("/dog/1", (Request request, Response response) -> {
-            response.sendFile(request.getRoute());
-        });
-
-        app.post("/dog/3", (Request request, Response response) -> {
-
-        });
-
-        app.get("/dog/3", (Request request, Response response) -> {
-            response.sendFile(request.getRoute());
-        });
-
-        app.post("/dog/5", (Request request, Response response) -> {
-
+        app.post("/dog", (Request request, Response response) -> {
+            if (request.getBody() != null) {
+                String uniqueRoute = request.getRoute() + "/" + app.getAvailableRouteId(request.getRoute());
+                String fileType = MIMETypes.getFileType(request.getHeaders().get(Headers.contentType));
+                app.saveResource(uniqueRoute, fileType, request.getBody().getBytes());
+                response.setHeader(Headers.location, uniqueRoute);
+            }
         });
 
         return app;

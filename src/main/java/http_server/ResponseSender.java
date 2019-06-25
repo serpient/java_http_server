@@ -78,12 +78,6 @@ public class ResponseSender {
             case Methods.post:
                 boolean hasResource = responseHasBody() && requestHasBody();
                 response.setStatus(!hasResource ? StatusCode.noContent : StatusCode.created);
-
-                if (requestHasBody()) {
-                    String fileType = MIMETypes.getFileType(request.getHeaders().get(Headers.contentType));
-                    response.setHeader(Headers.location, request.getRoute());
-                    router.saveResource(request.getRoute(), fileType, request.getBody().getBytes());
-                }
                 break;
         }
     }
