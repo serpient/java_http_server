@@ -7,6 +7,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -24,6 +27,19 @@ public class ServerTest {
     String dateHeader = "Date: " + currentDateTime() + Stringer.crlf;
     String serverHeader = "Server: JavaServer/0.1" + Stringer.crlf;
     Router router = new MockRouter().getApp();
+
+    @BeforeEach
+    public void prepFiles() {
+        FileHandler.deleteDirectory("./public/dog");
+        FileHandler.deleteDirectory("./public/echo_body.txt");
+    }
+
+
+    @AfterEach
+    public void cleanUpFiles() {
+        FileHandler.deleteDirectory("./public/dog");
+        FileHandler.deleteDirectory("./public/echo_body.txt");
+    }
 
     @Test
     public void GET_Request_Is_Responded_With_Headers_And_No_Body() {
@@ -110,8 +126,9 @@ public class ServerTest {
         String content_length = "Content-Length: 47" + Stringer.crlf;
         String body = Stringer.crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
         String request = request_line + user_agent + content_type + content_length + body;
-        String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
-        String response = responseLine + dateHeader + serverHeader + content_type + content_length + body;
+        String responseLine = "HTTP/1.1 201 Created" + Stringer.crlf;
+        String location = "Location: /echo_body" + Stringer.crlf;
+        String response = responseLine + location + dateHeader + serverHeader + content_type + content_length + body;
 
         MockClientSocket mockClientSocket = new MockClientSocket(request);
         Session session = new Session(mockClientSocket, router);
@@ -260,7 +277,7 @@ public class ServerTest {
     @Test
     public void post_request_can_save_resource_under_new_route() {
         String content_type = "Content-Type: text/plain" + Stringer.crlf;
-        String content_length = "Content-Length: 47" + Stringer.crlf;
+        String content_length = "Content-Length: 16" + Stringer.crlf;
         String body = Stringer.crlf + "Dog Breed: Corgi";
 
         assertAll("post request",
@@ -270,7 +287,7 @@ public class ServerTest {
                 String request = request_line + user_agent + content_type + content_length + body;
 
                 String responseLine = "HTTP/1.1 201 Created" + Stringer.crlf;
-                String location = "Location: http://127.0.0.1:5000/public/dog/1" + Stringer.crlf;
+                String location = "Location: /dog/1" + Stringer.crlf;
                 String response = responseLine + location + dateHeader + serverHeader;
 
                 MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -282,16 +299,52 @@ public class ServerTest {
             },
             () -> {
                 String request = "GET /dog/1 HTTP/1.1";
-                String responseLine = "HTTP/1.1 200 OK" + Stringer.crlf;
-                String response = responseLine + content_type + dateHeader + serverHeader + content_length + body;
+                String responseBody = "Dog Breed: Corgi";
 
                 MockClientSocket mockClientSocket = new MockClientSocket(request);
                 Session session = new Session(mockClientSocket, router);
 
                 session.run();
 
-                assertEquals(response, mockClientSocket.getSentData());
+                assertEquals(responseBody, mockClientSocket.getSentData());
             }
+        );
+    }
+
+    @Test
+    public void post_request_can_save_multiple_routes_under_main_route() {
+        String content_type = "Content-Type: text/plain" + Stringer.crlf;
+        String content_length = "Content-Length: 16" + Stringer.crlf;
+        String body = Stringer.crlf + "Dog Breed: Maine Coon";
+
+        assertAll("post request",
+                () -> {
+                    String request_line = "POST /dog/3 HTTP/1.1" + Stringer.crlf;
+                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
+                    String request = request_line + user_agent + content_type + content_length + body;
+
+                    String responseLine = "HTTP/1.1 201 Created" + Stringer.crlf;
+                    String location = "Location: /dog/3" + Stringer.crlf;
+                    String response = responseLine + location + dateHeader + serverHeader;
+
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+
+                    session.run();
+
+                    assertEquals(response, mockClientSocket.getSentData());
+                },
+                () -> {
+                    String request = "GET /dog/3 HTTP/1.1";
+                    String responseBody = "Dog Breed: Maine Coon";
+
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+
+                    session.run();
+
+                    assertEquals(responseBody, mockClientSocket.getSentData());
+                }
         );
     }
 }

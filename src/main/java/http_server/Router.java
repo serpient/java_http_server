@@ -14,7 +14,7 @@ public class Router {
     private HashMap<String, HashMap<String, Callback>> routes;
     private Set<String> methods;
     private Path basePath;
-    private Path staticDirectoryPath;
+    private static Path staticDirectoryPath;
 
     public Router() {
         this.routes = new HashMap<>();
@@ -67,6 +67,10 @@ public class Router {
         return methods;
     }
 
+    public static Path getStaticDirectoryPath() {
+        return staticDirectoryPath;
+    }
+
     public HashMap<String, Callback> getMethodCollection(String route) {
         return routes.get(route) == null
                 ? new HashMap<>()
@@ -75,6 +79,13 @@ public class Router {
 
     public void runCallback(Request request, Response response) {
         getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
+    }
+
+    public void saveResource(String path, String fileType, byte[] content) {
+        FileHandler.writeFile(getStaticDirectoryPath() + path, fileType, content);
+        get(path, (Request request, Response response) -> {
+            response.sendFile(path + "." + fileType);
+        });
     }
 
     private void updateRoutes(String method, String route, Callback handler) {

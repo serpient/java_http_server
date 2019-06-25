@@ -1,5 +1,6 @@
 package mocks;
 
+import http_protocol.StatusCode;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;
@@ -37,6 +38,7 @@ public class MockRouter {
         });
 
         app.post("/echo_body", (Request request, Response response) -> {
+            response.setStatus(StatusCode.ok);
             response.setBody(request.getBody());
         });
 
@@ -46,6 +48,22 @@ public class MockRouter {
 
         app.all("/redirect", (Request request, Response response) -> {
             response.redirect("/simple_get");
+        });
+
+        app.post("/dog/1", (Request request, Response response) -> {
+
+        });
+
+        app.get("/dog/1", (Request request, Response response) -> {
+            response.sendFile(request.getRoute());
+        });
+
+        app.post("/dog/3", (Request request, Response response) -> {
+
+        });
+
+        app.get("/dog/3", (Request request, Response response) -> {
+            response.sendFile(request.getRoute());
         });
 
         return app;

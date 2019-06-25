@@ -41,12 +41,13 @@ public class ResponseSender {
             return;
         }
 
-        if (methodCollection.get(request.getMethod()) == null) {
+        if (!methodCollection.containsKey(request.getMethod())) {
             response.setStatus(StatusCode.methodNotAllowed);
             response.setHeader(Headers.allowedHeaders, createOptionsHeader());
             client.sendData(buildFullHeader());
             return;
         }
+
 
         router.runCallback(request, response);
 
@@ -55,6 +56,16 @@ public class ResponseSender {
             client.sendBinary(Stringer.crlf.getBytes());
             client.sendBinary(response.getBinaryFile());
             return;
+        }
+
+        if (request.getMethod().equals(Methods.post)) {
+            if (response.getBinaryFile() != null || response.getBody() != null) {
+                response.setStatus(StatusCode.created);
+            } else {
+                response.setStatus(StatusCode.noContent);
+            }
+            response.setHeader(Headers.location, request.getRoute());
+            router.saveResource(request.getRoute(), "txt", request.getBody().getBytes());
         }
 
         if (hasBody(response.getBody())) {

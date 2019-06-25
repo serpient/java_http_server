@@ -1,5 +1,5 @@
 package application;
-import http_protocol.Headers;
+import http_protocol.StatusCode;
 import http_server.Request;
 import http_server.Response;
 import http_server.Server;
@@ -37,6 +37,7 @@ public class App {
         });
 
         app.post("/echo_body", (Request request, Response response) -> {
+            response.setStatus(StatusCode.ok);
             response.setBody(request.getBody());
         });
 

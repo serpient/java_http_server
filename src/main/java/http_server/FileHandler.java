@@ -1,16 +1,24 @@
 package http_server;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryIteratorException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class FileHandler {
     public static List<String> readDirectoryContents(String path) {
@@ -34,6 +42,9 @@ public class FileHandler {
         try {
             byte[] fileBytes = Files.readAllBytes(file);
             return fileBytes;
+        } catch (NoSuchFileException e) {
+            System.err.format("%s: no such" + " file or directory%n", path);
+            return null;
         } catch (IOException e) {
             System.err.println(e);
             return null;
@@ -71,6 +82,56 @@ public class FileHandler {
             System.err.println(e);
             return "";
         }
+    }
+
+    public static void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
+        Path path = Paths.get(intendedFilePath + "." + fileType);
+
+        createDirectories(Paths.get(trimLastResource(intendedFilePath)));
+
+        try (OutputStream out = new BufferedOutputStream(
+            Files.newOutputStream(path))
+        ) {
+            out.write(fileContents, 0, fileContents.length);
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+    }
+
+    public static void createDirectories(Path directoryPaths) {
+        try {
+            Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rwxrwxrwx");
+            FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(perms);
+            Files.createDirectories(directoryPaths, attr);
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+    }
+
+    public static void deleteDirectory(String directoryPath) {
+        List<String> directoryContents = readDirectoryContents(directoryPath);
+        for (int i = 0; i < directoryContents.size(); i++) {
+            deleteFile(directoryPath + "/" + directoryContents.get(i));
+        }
+        deleteFile(directoryPath);
+    }
+
+    public static void deleteFile(String filePath) {
+        Path path = Paths.get(filePath);
+
+        try {
+            Files.deleteIfExists(path);
+        } catch (DirectoryNotEmptyException x) {
+            System.err.format("%s not empty%n", path);
+        } catch (IOException x) {
+            // File permission problems are caught here.
+            System.err.println(x);
+        }
+    }
+
+    public static String trimLastResource(String path) {
+        int lastSlashIndex = path.lastIndexOf("/");
+        return path.substring(0, lastSlashIndex);
     }
 
 }

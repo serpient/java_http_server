@@ -1,10 +1,24 @@
 package http_server;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 public class DirectoryCreatorTest {
+    @BeforeEach
+    public void prepFiles() {
+        FileHandler.deleteDirectory("./public/dog");
+        FileHandler.deleteDirectory("./public/echo_body.txt");
+    }
+
+    @AfterEach
+    public void cleanUpFiles() {
+        FileHandler.deleteDirectory("./public/dog");
+        FileHandler.deleteDirectory("./public/echo_body.txt");
+    }
+
     @Test
     public void static_files_in_public_directory_are_rendered_as_a_HTML_page_with_contents_listed() {
         String path = "./public";

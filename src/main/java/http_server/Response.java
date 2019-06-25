@@ -52,4 +52,12 @@ public class Response {
     public byte[] getBinaryFile() {
         return binaryFile;
     }
+
+    public void sendFile(String path) {
+        String filePath = Router.getStaticDirectoryPath() + path;
+        byte[] file = FileHandler.readFile(filePath);
+        saveBinary(file);
+        setHeader(Headers.contentType, FileHandler.getFileType(filePath));
+        setHeader(Headers.contentLength, file.length + "");
+    }
 }
