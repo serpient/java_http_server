@@ -1,14 +1,11 @@
 package mocks;
 
-import file_handler.FileHandler;
 import http_protocol.Headers;
 import http_protocol.MIMETypes;
 import http_protocol.StatusCode;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;
-
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class MockRouter {
@@ -56,12 +53,20 @@ public class MockRouter {
         });
 
         app.post("/dog", (Request request, Response response) -> {
-            if (request.getBody() != null) {
-                String uniqueRoute = request.getRoute() + "/" + app.getAvailableRouteId(request.getRoute());
-                String fileType = MIMETypes.getFileType(request.getHeaders().get(Headers.contentType));
-                app.saveResource(uniqueRoute, fileType, request.getBody().getBytes());
-                response.setHeader(Headers.location, uniqueRoute);
+            if (request.getBody() == null) {
+                return;
             }
+            String uniqueRoute = app.getUniqueRoute(request.getRoute());
+            app.saveResource(uniqueRoute, request.getContentFileType(), request.getBody().getBytes());
+            response.setHeader(Headers.location, uniqueRoute);
+        });
+
+        app.put("/cat/1", (Request request, Response response) -> {
+            if (request.getBody() == null) {
+                return;
+            }
+            app.saveResource(request.getRoute(), request.getContentFileType(), request.getBody().getBytes());
+            response.setStatus(StatusCode.created);
         });
 
         return app;

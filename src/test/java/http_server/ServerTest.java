@@ -17,14 +17,13 @@ public class ServerTest {
     @BeforeEach
     public void prepFiles() {
         FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/dog.txt");
+        FileHandler.deleteDirectory("./public/cat");
     }
-
-
+    
     @AfterEach
     public void cleanUpFiles() {
         FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/dog.txt");
+        FileHandler.deleteDirectory("./public/cat");
     }
 
     @Test
@@ -327,6 +326,95 @@ public class ServerTest {
                     String response = mockClientSocket.getSentData();
 
                     assertEquals("404", Parser.getStatusCode(response));
+                }
+        );
+    }
+
+    @Test
+    public void put_request_can_save_to_resource_route() {
+        String content_type = "Content-Type: text/html" + Stringer.crlf;
+        String content_length = "Content-Length: 16" + Stringer.crlf;
+        HTMLBuilder html = new HTMLBuilder();
+        html.append("<div>Cat Breed: Maine Coon>/div>");
+        String body = Stringer.crlf + html.generate();
+
+        assertAll("put request",
+                () -> {
+                    String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
+                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
+                    String request = request_line + user_agent + content_type + content_length + body;
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+                    session.run();
+                    String response = mockClientSocket.getSentData();
+
+                    assertEquals("201", Parser.getStatusCode(response));
+                    assertEquals(null, Parser.getBody(response));
+                },
+                () -> {
+                    String request = "GET /cat/1 HTTP/1.1";
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+
+                    session.run();
+
+                    String response = mockClientSocket.getSentData();
+
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
+                    assertEquals(body.trim(), Parser.getBody(response));
+                }
+        );
+    }
+
+    @Test
+    public void put_request_can_overwrite_existing_resource() {
+        String replaced_content_type = "Content-Type: text/plain" + Stringer.crlf;
+        String replaced_content_length = "Content-Length: 16" + Stringer.crlf;
+        HTMLBuilder replaced_html = new HTMLBuilder();
+        replaced_html.append("Hello kitty!");
+        String replaced_body = Stringer.crlf + replaced_html.generate();
+
+        assertAll("put request",
+                () -> {
+                    String content_type = "Content-Type: text/html" + Stringer.crlf;
+                    String content_length = "Content-Length: 16" + Stringer.crlf;
+                    HTMLBuilder html = new HTMLBuilder();
+                    html.append("<div>Cat Breed: Maine Coon>/div>");
+                    String body = Stringer.crlf + html.generate();
+                    String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
+                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
+                    String request = request_line + user_agent + content_type + content_length + body;
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+                    session.run();
+                    String response = mockClientSocket.getSentData();
+
+                    assertEquals("201", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
+                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
+                    String request = request_line + user_agent + replaced_content_type + replaced_content_length + replaced_body;
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+                    session.run();
+                    String response = mockClientSocket.getSentData();
+
+                    assertEquals("201", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request = "GET /cat/1 HTTP/1.1";
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+
+                    session.run();
+
+                    String response = mockClientSocket.getSentData();
+
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals("text/plain", Parser.getHeaders(response).get("Content-Type"));
+                    assertEquals(replaced_body.trim(), Parser.getBody(response));
                 }
         );
     }

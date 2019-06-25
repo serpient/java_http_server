@@ -11,13 +11,13 @@ public class DirectoryCreatorTest {
     @BeforeEach
     public void prepFiles() {
         FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/echo_body.txt");
+        FileHandler.deleteDirectory("./public/cat");
     }
 
     @AfterEach
     public void cleanUpFiles() {
         FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/echo_body.txt");
+        FileHandler.deleteDirectory("./public/cat");
     }
 
     @Test

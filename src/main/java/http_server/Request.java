@@ -1,5 +1,8 @@
 package http_server;
 
+import http_protocol.Headers;
+import http_protocol.MIMETypes;
+
 import java.util.HashMap;
 
 public class Request {
@@ -29,5 +32,9 @@ public class Request {
 
     public HashMap<String, String> getHeaders() {
         return headers;
+    }
+
+    public String getContentFileType() {
+        return MIMETypes.getFileType(getHeaders().get(Headers.contentType));
     }
 }

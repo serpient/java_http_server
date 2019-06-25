@@ -7,13 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Router {
@@ -99,6 +95,9 @@ public class Router {
         });
     }
 
+    public String getUniqueRoute(String path) {
+        return path + "/" + getAvailableRouteId(path);
+    }
     public int getAvailableRouteId(String route) {
         Stream<String> matchingRoutes = findMatchingRoutes(route);
 
