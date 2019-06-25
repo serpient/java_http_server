@@ -23,6 +23,7 @@ public class Router {
         methods.add(Methods.head);
         methods.add(Methods.post);
         methods.add(Methods.put);
+        methods.add(Methods.options);
     }
 
     public HashMap<String, HashMap<String, Callback>> getRouter() {
@@ -63,6 +64,10 @@ public class Router {
         }
     }
 
+    private void options(String route, Callback handler) {
+        updateRoutes(Methods.options, route, handler);
+    }
+
     public Set<String> getMethods() {
         return methods;
     }
@@ -91,6 +96,11 @@ public class Router {
     private void updateRoutes(String method, String route, Callback handler) {
         HashMap<String, Callback> methodCollection = getMethodCollection(route);
         methodCollection.put(method, handler);
+        if (!methodCollection.containsKey(Methods.options)) {
+            methodCollection.put(Methods.options, (Request request, Response response) -> {
+                response.setHeader(Headers.allowedHeaders, ResponseSender.createOptionsHeader());
+            });
+        }
         routes.put(route, methodCollection);
     }
 

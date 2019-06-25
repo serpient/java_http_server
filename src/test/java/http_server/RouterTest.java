@@ -55,7 +55,7 @@ public class RouterTest {
     public void Get_Adds_New_Get_Route_In_Collection() {
         router.get("/get_with_body", anonymousFn_True);
 
-        assertEquals("[GET]", collection.get("/get_with_body").keySet().toString());
+        assertEquals("[GET, OPTIONS]", collection.get("/get_with_body").keySet().toString());
     }
 
     @Test
@@ -92,7 +92,7 @@ public class RouterTest {
     public void Head_Adds_New_Head_Route_In_Collection() {
         router.head("/get_with_body", anonymousFn_True);
 
-        assertEquals("[HEAD]", collection.get("/get_with_body").keySet().toString());
+        assertEquals("[HEAD, OPTIONS]", collection.get("/get_with_body").keySet().toString());
     }
 
 
@@ -100,7 +100,7 @@ public class RouterTest {
     public void Post_Adds_New_Post_Route_In_Collection() {
         router.post("/get_with_body", anonymousFn_True);
 
-        assertEquals("[POST]", collection.get("/get_with_body").keySet().toString());
+        assertEquals("[POST, OPTIONS]", collection.get("/get_with_body").keySet().toString());
     }
 
 
@@ -110,7 +110,7 @@ public class RouterTest {
         router.head("/get_with_body", anonymousFn_False);
         router.get("/get_with_body", anonymousFn_False);
 
-        assertEquals("[HEAD, POST, GET]", collection.get("/get_with_body").keySet().toString());
+        assertEquals("[HEAD, POST, GET, OPTIONS]", collection.get("/get_with_body").keySet().toString());
     }
 
     @Test
