@@ -1,9 +1,8 @@
 package http_server;
 
+import file_handler.FileHandler;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FileHandlerTest {
     @Test

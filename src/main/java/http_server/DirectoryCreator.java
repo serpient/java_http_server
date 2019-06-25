@@ -1,5 +1,6 @@
 package http_server;
 
+import file_handler.FileHandler;
 import java.util.List;
 
 public class DirectoryCreator {

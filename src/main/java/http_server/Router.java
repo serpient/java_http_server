@@ -1,8 +1,8 @@
 package http_server;
 
+import file_handler.FileHandler;
 import http_protocol.Headers;
 import http_protocol.Methods;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;

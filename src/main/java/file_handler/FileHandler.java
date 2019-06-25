@@ -1,4 +1,4 @@
-package http_server;
+package file_handler;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;

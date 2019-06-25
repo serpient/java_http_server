@@ -1,5 +1,6 @@
 package http_server;
 
+import file_handler.FileHandler;
 import http_protocol.Headers;
 import http_protocol.StatusCode;
 import java.util.LinkedHashMap;

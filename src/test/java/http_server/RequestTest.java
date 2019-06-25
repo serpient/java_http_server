@@ -69,6 +69,6 @@ public class RequestTest {
 
     @Test
     public void request_with_NO_body_parse_body() {
-        assertEquals("", h_request.getBody());
+        assertEquals(null, h_request.getBody());
     }
 }
