@@ -1,6 +1,7 @@
 package http_server;
 
 import http_protocol.Headers;
+import http_protocol.MIMETypes;
 import http_protocol.Methods;
 import http_protocol.StatusCode;
 import http_protocol.Stringer;
@@ -59,13 +60,17 @@ public class ResponseSender {
         }
 
         if (request.getMethod().equals(Methods.post)) {
-            if (response.getBinaryFile() != null || response.getBody() != null) {
+            if (response.getBinaryFile() != null || response.getBody() != null && request.getBody() != null) {
                 response.setStatus(StatusCode.created);
             } else {
                 response.setStatus(StatusCode.noContent);
             }
-            response.setHeader(Headers.location, request.getRoute());
-            router.saveResource(request.getRoute(), "txt", request.getBody().getBytes());
+            if (request.getBody() != null) {
+                response.setHeader(Headers.location, request.getRoute());
+                router.saveResource(request.getRoute(),
+                        MIMETypes.getFileType(request.getHeaders().get(Headers.contentType)),
+                        request.getBody().getBytes());
+            }
         }
 
         if (hasBody(response.getBody())) {

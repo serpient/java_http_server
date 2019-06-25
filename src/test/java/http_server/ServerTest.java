@@ -225,9 +225,10 @@ public class ServerTest {
 
         session.run();
 
-        int imageContentLength = 1367902;
+        String response = mockClientSocket.getSentData();
 
-        assertEquals(imageContentLength, mockClientSocket.getSentData().length());
+        assertEquals("200", Parser.getStatusCode(response));
+        assertEquals("image/png", Parser.getHeaders(response).get("Content-Type"));
     }
 
     @Test
@@ -257,16 +258,19 @@ public class ServerTest {
                 session.run();
                 String response = mockClientSocket.getSentData();
 
-                assertEquals(body.trim(), response);
+                assertEquals("200", Parser.getStatusCode(response));
+                assertEquals(body.trim(), Parser.getBody(response));
             }
         );
     }
 
     @Test
-    public void post_request_can_save_multiple_routes_under_main_route() {
-        String content_type = "Content-Type: text/plain" + Stringer.crlf;
+    public void post_request_can_save_html_files_types() {
+        String content_type = "Content-Type: text/html" + Stringer.crlf;
         String content_length = "Content-Length: 16" + Stringer.crlf;
-        String body = Stringer.crlf + "Dog Breed: Maine Coon";
+        HTMLBuilder html = new HTMLBuilder();
+        html.append("<div>Dog Breed: Maine Coon>/div>");
+        String body = Stringer.crlf + html.generate();
 
         assertAll("post request",
                 () -> {
@@ -291,7 +295,38 @@ public class ServerTest {
 
                     String response = mockClientSocket.getSentData();
 
-                    assertEquals(body.trim(), response);
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
+                    assertEquals(body.trim(), Parser.getBody(response));
+                }
+        );
+    }
+
+    @Test
+    public void post_request_with_no_body_does_not_create_a_resource() {
+        assertAll("post request",
+                () -> {
+                    String request_line = "POST /dog/5 HTTP/1.1" + Stringer.crlf;
+                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
+                    String request = request_line + user_agent;
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+                    session.run();
+                    String response = mockClientSocket.getSentData();
+
+                    assertEquals("204", Parser.getStatusCode(response));
+                    assertEquals(null, Parser.getBody(response));
+                },
+                () -> {
+                    String request = "GET /dog/5 HTTP/1.1";
+                    MockClientSocket mockClientSocket = new MockClientSocket(request);
+                    Session session = new Session(mockClientSocket, router);
+
+                    session.run();
+
+                    String response = mockClientSocket.getSentData();
+
+                    assertEquals("405", Parser.getStatusCode(response));
                 }
         );
     }

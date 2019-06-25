@@ -66,6 +66,10 @@ public class MockRouter {
             response.sendFile(request.getRoute());
         });
 
+        app.post("/dog/5", (Request request, Response response) -> {
+
+        });
+
         return app;
     }
 }
