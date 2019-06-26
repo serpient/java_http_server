@@ -1,7 +1,6 @@
 package http_server;
 
 import http_protocol.RequestCreator;
-import http_protocol.Stringer;
 
 public class Session implements Runnable {
     private final SocketWrapper client;
@@ -29,11 +28,10 @@ public class Session implements Runnable {
             String input = client.readData();
 
             Request request = RequestCreator.from(input);
-            String response = new Response(request, router).generateResponse();
+            Response response = new Response();
+            ResponseSender sender = new ResponseSender(client, response, request, router);
 
-            serverPrint(response);
-
-            client.sendData(response);
+            sender.sendBinary();
 
             close();
         }
@@ -43,9 +41,5 @@ public class Session implements Runnable {
         client.close();
         isRunning = false;
         System.out.println("Disconnecting client");
-    }
-
-    private void serverPrint(String message) {
-        System.out.println(Stringer.crlf + message + Stringer.crlf);
     }
 }

@@ -1,10 +1,9 @@
-package http_protocol;
+package http_server;
 
-import http_server.Callback;
-import http_server.Request;
-import http_server.Response;
-import http_server.Router;
-
+import http_protocol.Headers;
+import http_protocol.Methods;
+import http_protocol.StatusCode;
+import http_protocol.Stringer;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -14,45 +13,61 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ResponseCreator {
+public class ResponseSender {
+    private SocketWrapper client;
     private Response response;
     private Request request;
     private Router router;
     private HashMap<String, Callback> methodCollection;
 
-    public ResponseCreator(Response response, Request request, Router router) {
+    public ResponseSender(SocketWrapper client, Response response, Request request, Router router) {
+        this.client = client;
         this.response = response;
         this.request = request;
         this.router = router;
         this.methodCollection = router.getMethodCollection(request.getRoute());
     }
 
-    public String create() {
+    public void sendBinary() {
         if (methodCollection.isEmpty()) {
             response.setStatus(StatusCode.notFound);
-            return responseBuilder();
+            client.sendData(buildFullHeader());
+            return;
         }
 
         if (request.getMethod().equals(Methods.options)) {
             response.setHeader(Headers.allowedHeaders, createOptionsHeader());
-            return responseBuilder();
+            client.sendData(buildFullHeader());
+            return;
         }
 
         if (methodCollection.get(request.getMethod()) == null) {
             response.setStatus(StatusCode.methodNotAllowed);
             response.setHeader(Headers.allowedHeaders, createOptionsHeader());
-            return responseBuilder();
-        }
-
-        if (hasBody(request.getBody())) {
-            String newBody = response.getBody();
-            newBody += request.getBody();
-            response.setBody(newBody);
+            client.sendData(buildFullHeader());
+            return;
         }
 
         router.runCallback(request, response);
 
-        return responseBuilder();
+        if (response.getBinaryFile() != null) {
+            client.sendBinary(buildFullHeader().getBytes());
+            client.sendBinary(Stringer.crlf.getBytes());
+            client.sendBinary(response.getBinaryFile());
+            return;
+        }
+
+        if (hasBody(response.getBody())) {
+            client.sendData(buildFullHeader() + buildBody());
+            return;
+        }
+
+        client.sendData(buildFullHeader());
+        return;
+    }
+
+    public String buildFullHeader() {
+        return buildStatus() + buildHeader();
     }
 
     public String buildStatus() {
@@ -64,8 +79,15 @@ public class ResponseCreator {
         response.setHeader(Headers.server, "JavaServer/0.1");
 
         if (hasBody(response.getBody())) {
-            response.setHeader(Headers.contentType, "text/plain");
-            response.setHeader(Headers.contentLength, Integer.toString(getContentLength(response.getBody())));
+            System.err.println(response.getHeaders());
+            if (response.getHeaders().get(Headers.contentType) == null) {
+                response.setHeader(Headers.contentType, "text/plain");
+            }
+
+            if (response.getHeaders().get(Headers.contentLength) == null) {
+                response.setHeader(Headers.contentLength, Integer.toString(getContentLength(response.getBody())));
+            }
+
         }
 
         return createHeaderString();
@@ -77,10 +99,6 @@ public class ResponseCreator {
         } else {
             return "";
         }
-    }
-
-    private String responseBuilder() {
-        return buildStatus() + buildHeader() + buildBody();
     }
 
     private String createHeaderString() {

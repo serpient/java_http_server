@@ -4,6 +4,8 @@ import http_server.Request;
 import http_server.Response;
 import http_server.Router;
 
+import java.nio.file.Paths;
+
 public class MockRouter {
     public Router getApp() {
         return createRouter();
@@ -11,6 +13,14 @@ public class MockRouter {
 
     private Router createRouter() {
         Router app = new Router();
+
+        app.basePath(Paths.get(System.getProperty("user.dir")));
+
+        app.staticDirectory("/public");
+
+        app.get("/", (Request request, Response response) -> {
+            response.redirect("/public");
+        });
 
         app.get("/simple_get", (Request request, Response response) -> {});
 
@@ -21,13 +31,14 @@ public class MockRouter {
                     "Potter\n");
         });
 
-
         app.get("/harry_potter", (Request request, Response response) -> {
             response.setBody("Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n");
         });
 
-        app.post("/echo_body", (Request request, Response response) -> {});
+        app.post("/echo_body", (Request request, Response response) -> {
+            response.setBody(request.getBody());
+        });
 
         app.get("/method_options", (Request request, Response response) -> {});
 

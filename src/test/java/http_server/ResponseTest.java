@@ -1,9 +1,9 @@
 package http_server;
 
 import http_protocol.RequestCreator;
-import http_protocol.ResponseCreator;
 import http_protocol.StatusCode;
 import http_protocol.Stringer;
+import mocks.MockClientSocket;
 import mocks.MockRouter;
 import org.junit.Test;
 
@@ -21,6 +21,8 @@ public class ResponseTest {
 
     Request requestData = RequestCreator.from(request);
     Router mockRouter = new MockRouter().getApp();
+    MockClientSocket mockClient = new MockClientSocket("");
+    Response response = new Response();
 
     private String currentDateTime() {
         ZonedDateTime date = LocalDateTime.now().atZone(ZoneId.of("GMT+00"));
@@ -32,8 +34,7 @@ public class ResponseTest {
 
     @Test
     public void response_can_set_status() {
-        Response response = new Response(requestData, mockRouter);
-        ResponseCreator builder = new ResponseCreator(response, requestData, mockRouter);
+        ResponseSender builder = new ResponseSender(mockClient, response, requestData, mockRouter);
 
         response.setStatus(StatusCode.notFound);
         response.setHeader("Date", currentDateTime());
@@ -46,8 +47,7 @@ public class ResponseTest {
 
     @Test
     public void response_can_add_custom_headers() {
-        Response response = new Response(requestData, mockRouter);
-        ResponseCreator builder = new ResponseCreator(response, requestData, mockRouter);
+        ResponseSender builder = new ResponseSender(mockClient, response, requestData, mockRouter);
         response.setHeader("Date", currentDateTime());
         response.setHeader("Server", "JavaServer/0.1");
         response.setHeader("CustomHeader", "Hiya!");
@@ -61,8 +61,7 @@ public class ResponseTest {
 
     @Test
     public void response_can_change_body() {
-        Response response = new Response(requestData, mockRouter);
-        ResponseCreator builder = new ResponseCreator(response, requestData, mockRouter);
+        ResponseSender builder = new ResponseSender(mockClient, response, requestData, mockRouter);
         String customBody = "This is my custom responseBody!";
         response.setBody(customBody);
 
@@ -71,7 +70,7 @@ public class ResponseTest {
 
     @Test
     public void response_can_build_a_full_body_response() {
-        Response response = new Response(requestData, mockRouter);
+        ResponseSender builder = new ResponseSender(mockClient, response, requestData, mockRouter);
         String customBody = "This is my custom responseBody!";
         response.setBody(customBody);
 
@@ -82,6 +81,8 @@ public class ResponseTest {
                 "Content-Length: " + "31" + Stringer.crlf + Stringer.crlf +
                 customBody;
 
-        assertEquals(returnedResponse, response.generateResponse());
+        String builderResponse = builder.buildStatus() + builder.buildHeader() + builder.buildBody();
+
+        assertEquals(returnedResponse, builderResponse);
     }
 }

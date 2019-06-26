@@ -1,23 +1,17 @@
 package http_server;
 
 import http_protocol.Headers;
-import http_protocol.ResponseCreator;
 import http_protocol.StatusCode;
 import java.util.LinkedHashMap;
 
 public class Response {
-    private ResponseCreator responseCreator;
     private LinkedHashMap<String, String> headerCollection = new LinkedHashMap<>();
     private String status;
     private String responseBody = "";
+    private byte[] binaryFile;
 
-    public Response(Request request, Router router) {
-        this.responseCreator = new ResponseCreator(this, request, router);
+    public Response() {
         this.status = StatusCode.ok;
-    }
-
-    public String generateResponse() {
-        return responseCreator.create();
     }
 
     public void setHeader(String headerName, String headerValue) {
@@ -47,5 +41,15 @@ public class Response {
     public void redirect(String redirectedRoute) {
         setStatus(StatusCode.moved);
         setHeader(Headers.location, "http://127.0.0.1:5000" + redirectedRoute);
+    }
+
+    public void saveBinary(byte[] bytes)
+    {
+        setHeader(Headers.contentLength, bytes.length + "");
+        this.binaryFile = bytes;
+    }
+
+    public byte[] getBinaryFile() {
+        return binaryFile;
     }
 }

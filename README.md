@@ -6,6 +6,7 @@
 ### 1. Install Java
 Check if Java is present: `java -version`
 
+This project is currently running `java version "12.0.1" 2019-04-16`
 If not present, follow these [instructions](https://www.notion.so/Setting-Up-Java-Environment-1a48792fb5c6403bbb430c882e411226#3b7fec7b6e6d4f06a82dca4afcf31081).
 
 ### 2. Install Gradle
@@ -50,6 +51,12 @@ public class App {
     private static void createRouter() {
         Router app = new Router();
 
+        // creating a static directory
+        app.basePath(getProjectBasePath());
+        app.staticDirectory("/public");
+
+
+        // create the routes
         app.get("/get_with_body", (Request request, Response response) -> {
             res.body("Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n");

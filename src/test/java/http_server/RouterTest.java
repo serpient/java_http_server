@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
@@ -20,7 +21,7 @@ public class RouterTest {
     String body = Stringer.crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
     String request = request_line + user_agent + content_type + content_length + body;
     Request req = RequestCreator.from(request);
-    Response res = new Response(req, new Router());
+    Response res = new Response();
 
     String anonymousFn_True_Result = "true";
     Callback anonymousFn_True = (Request req, Response res) -> {
@@ -135,5 +136,21 @@ public class RouterTest {
     public void Given_Route_And_Method_Router_Can_Find_The_Matching_Callback() {
         router.get("/get_with_body", anonymousFn_False);
         assertEquals(anonymousFn_False, collection.get("/get_with_body").get("GET"));
+    }
+
+    @Test
+    public void Router_Can_Set_A_Public_Directory_Route() {
+        router.basePath(Paths.get(System.getProperty("user.dir")));
+        router.staticDirectory("/public");
+
+        assertEquals(true, collection.get("/public").containsKey("GET"));
+    }
+
+    @Test
+    public void Router_can_navigate_to_directory_contents_as_routes() {
+        router.basePath(Paths.get(System.getProperty("user.dir")));
+        router.staticDirectory("/public");
+
+        assertEquals(true, collection.get("/public/Home.html").containsKey("GET"));
     }
 }
