@@ -2,8 +2,8 @@ package http_server;
 
 import file_handler.FileHandler;
 import http_protocol.Headers;
+import http_protocol.Methods;
 import http_protocol.StatusCode;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -23,14 +23,27 @@ public class Response {
         this.request = request;
     }
 
+    public byte[] create() {
+        if (requestIsValid()) {
+            router.fillResponseForRequest(request, this);
+        }
+
+        return getBytes();
+    }
+
     public boolean requestIsValid() {
         if (router.routeInvalid(request.getRoute())) {
-            initFromNotFound();
+            notFound();
             return false;
         }
 
         if (router.methodInvalid(request.getRoute(), request.getMethod())) {
-            initFromMethodNotAllowed();
+            methodNotAllowed();
+            return false;
+        }
+
+        if (Methods.creationMethods().contains(request.getMethod()) && request.getBody() == null) {
+            noContent();
             return false;
         }
 
@@ -54,16 +67,20 @@ public class Response {
         return headers;
     }
 
-    public void initFromNotFound() {
+    private void notFound() {
         this.status = StatusCode.notFound;
     }
 
-    public void initFromMethodNotAllowed() {
+    private void methodNotAllowed() {
         this.status = StatusCode.methodNotAllowed;
         setHeader(Headers.allowedHeaders, router.createOptionsHeader(request.getRoute()));
     }
 
-    public void initFromFile(String path) {
+    private void noContent() {
+        this.status = StatusCode.noContent;
+    }
+
+    public void sendFile(String path) {
         String filePath = Router.getFullStaticDirectoryPath() + path;
         byte[] file = FileHandler.readFile(filePath);
         this.body = file;
@@ -71,47 +88,33 @@ public class Response {
         setHeader(Headers.contentLength, file.length + "");
     }
 
-    public void initFromRedirect(String redirectedRoute) {
+    public void redirect(String redirectedRoute) {
         status = StatusCode.moved;
         setHeader(Headers.location, "http://127.0.0.1:5000" + redirectedRoute);
     }
 
-    public void initFromBody(byte[] bodyContent, String contentType) {
+    public void sendBody(byte[] bodyContent, String contentType) {
         setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
         setHeader(Headers.contentType, contentType);
         this.body = bodyContent;
     }
 
-    public void initFromPutData(byte[] bodyContent) {
-        this.status = bodyContent != null ? StatusCode.created : StatusCode.noContent;
+    public void successfulPut() {
+        this.status = StatusCode.created;
     }
 
-    public void initFromPostData(byte[] bodyContent, String resourceLocation) {
-        if (bodyContent != null) {
-            setHeader(Headers.location, resourceLocation);
-            this.status = StatusCode.created;
-        } else {
-            this.status = StatusCode.noContent;
-        }
+    public void successfulPost(String resourceLocation) {
+        setHeader(Headers.location, resourceLocation);
+        this.status = StatusCode.created;
     }
 
-    public void initFromEmptyData() {
-        this.status = StatusCode.noContent;
-    }
-
-    public void initFromHeadResponse(byte[] bodyContent, String contentType) {
+    public void head(byte[] bodyContent, String contentType) {
         setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
         setHeader(Headers.contentType, contentType);
     }
 
-    public void initFromOptions(String allowedHeaders) {
+    public void options(String allowedHeaders) {
         setHeader(Headers.allowedHeaders, allowedHeaders);
-    }
-
-    public void initFromHTTPResponse(String status, LinkedHashMap<String, String> headers, byte[] body) {
-        this.status = status;
-        this.headers = headers;
-        this.body = body;
     }
 
     private void initDefaultHeaders() {

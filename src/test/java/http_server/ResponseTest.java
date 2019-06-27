@@ -40,6 +40,31 @@ public class ResponseTest {
     }
 
     @Test
+    public void response_can_check_if_post_has_no_body_response() {
+        String request = "POST /dog HTTP/1.1" + Stringer.crlf;
+        Response response = createResponseObject(request);
+
+        assertEquals(false, response.requestIsValid());
+        assertEquals(StatusCode.noContent, response.getStatus());
+        assertEquals(null, response.getHeaders().get(Headers.contentLength));
+        assertEquals(null, response.getHeaders().get(Headers.contentType));
+        assertEquals(null, response.getBody());
+    }
+
+    @Test
+    public void response_can_check_if_put_has_no_body_response() {
+        String request = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
+        Response response = createResponseObject(request);
+
+        assertEquals(false, response.requestIsValid());
+        assertEquals(StatusCode.noContent, response.getStatus());
+        assertEquals(null, response.getHeaders().get(Headers.contentLength));
+        assertEquals(null, response.getHeaders().get(Headers.contentType));
+        assertEquals(null, response.getBody());
+    }
+
+
+    @Test
     public void response_can_check_if_request_has_valid_request() {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
@@ -51,7 +76,7 @@ public class ResponseTest {
     public void response_can_format_full_response_from_file() {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
-        response.initFromFile("/water.png");
+        response.sendFile("/water.png");
         byte[] readImage = FileHandler.readFile("./public/water.png");
 
         assertEquals(StatusCode.ok, response.getStatus());
@@ -63,7 +88,7 @@ public class ResponseTest {
     public void response_can_format_full_redirect_response() {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
-        response.initFromRedirect("/harry_potter");
+        response.redirect("/harry_potter");
 
         assertEquals(StatusCode.moved, response.getStatus());
         assertEquals("http://127.0.0.1:5000/harry_potter", response.getHeaders().get(Headers.location));
@@ -79,7 +104,7 @@ public class ResponseTest {
         String request = request_line + content_type + content_length + Stringer.crlf + body;
         byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.initFromBody(bodyBytes, MIMETypes.plain);
+        response.sendBody(bodyBytes, MIMETypes.plain);
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals("16", response.getHeaders().get(Headers.contentLength));
@@ -96,22 +121,9 @@ public class ResponseTest {
         String request = request_line + content_type + content_length + Stringer.crlf + body;
         byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.initFromPutData(bodyBytes);
+        response.successfulPut();
 
         assertEquals(StatusCode.created, response.getStatus());
-        assertEquals(null, response.getHeaders().get(Headers.contentLength));
-        assertEquals(null, response.getHeaders().get(Headers.contentType));
-        assertEquals(null, response.getBody());
-    }
-
-    @Test
-    public void response_can_format_full_put_with_no_body_response() {
-        String request_line = "PUT /dog HTTP/1.1" + Stringer.crlf;
-        String request = request_line + Stringer.crlf;
-        Response response = createResponseObject(request);
-        response.initFromPutData(null);
-
-        assertEquals(StatusCode.noContent, response.getStatus());
         assertEquals(null, response.getHeaders().get(Headers.contentLength));
         assertEquals(null, response.getHeaders().get(Headers.contentType));
         assertEquals(null, response.getBody());
@@ -126,22 +138,10 @@ public class ResponseTest {
         String request = request_line + content_type + content_length + Stringer.crlf + body;
         byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.initFromPostData(bodyBytes, "/dog/1");
+        response.successfulPost("/dog/1");
 
         assertEquals(StatusCode.created, response.getStatus());
         assertEquals("/dog/1", response.getHeaders().get(Headers.location));
-        assertEquals(null, response.getBody());
-    }
-
-    @Test
-    public void response_can_format_full_post_with_no_body_response() {
-        String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
-        String request = request_line + Stringer.crlf;
-        Response response = createResponseObject(request);
-        response.initFromPostData(null, "/dog/1");
-
-        assertEquals(StatusCode.noContent, response.getStatus());
-        assertEquals(null, response.getHeaders().get(Headers.location));
         assertEquals(null, response.getBody());
     }
 
@@ -151,7 +151,7 @@ public class ResponseTest {
         String request = request_line + Stringer.crlf;
         byte[] bodyBytes = "HELLO".getBytes();
         Response response = createResponseObject(request);
-        response.initFromHeadResponse(bodyBytes, MIMETypes.plain);
+        response.head(bodyBytes, MIMETypes.plain);
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals("5", response.getHeaders().get(Headers.contentLength));
@@ -164,7 +164,7 @@ public class ResponseTest {
         String request_line = "OPTIONS /get_with_body HTTP/1.1" + Stringer.crlf;
         String request = request_line + Stringer.crlf;
         Response response = createResponseObject(request);
-        response.initFromOptions(mockRouter.createOptionsHeader("/get_with_body"));
+        response.options(mockRouter.createOptionsHeader("/get_with_body"));
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals("OPTIONS, HEAD", response.getHeaders().get(Headers.allowedHeaders));

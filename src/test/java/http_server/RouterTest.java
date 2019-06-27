@@ -25,12 +25,12 @@ public class RouterTest {
 
     String anonymousFn_True_Result = "true";
     Callback anonymousFn_True = (Request req, Response res) -> {
-        res.initFromBody(anonymousFn_True_Result.getBytes(), MIMETypes.plain);
+        res.sendBody(anonymousFn_True_Result.getBytes(), MIMETypes.plain);
     };
 
     String anonymousFn_False_Result = "false";
     Callback anonymousFn_False = (Request req, Response res) -> {
-        res.initFromBody(anonymousFn_True_Result.getBytes(), MIMETypes.plain);
+        res.sendBody(anonymousFn_True_Result.getBytes(), MIMETypes.plain);
     };
 
     @BeforeEach
@@ -158,11 +158,11 @@ public class RouterTest {
     @Test
     public void Router_can_find_next_next_largest_id_for_a_parent_route() {
         router.get("/dog/1", (Request request, Response response) -> {
-            response.initFromFile(request.getRoute());
+            response.sendFile(request.getRoute());
         });
 
         router.get("/dog/3", (Request request, Response response) -> {
-            response.initFromFile(request.getRoute());
+            response.sendFile(request.getRoute());
         });
 
         router.post("/dog/5", (Request request, Response response) -> {

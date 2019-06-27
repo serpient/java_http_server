@@ -92,11 +92,10 @@ public class ServerTest {
     @Test
     public void POST_request_is_responded_with_headers_and_echoed_post_value() {
         String request_line = "POST /echo_body HTTP/1.1" + Stringer.crlf;
-        String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
         String content_type = "Content-Type: text/plain" + Stringer.crlf;
         String content_length = "Content-Length: 47" + Stringer.crlf;
         String body = Stringer.crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
-        String request = request_line + user_agent + content_type + content_length + body;
+        String request = request_line + content_type + content_length + body;
         String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("201", Parser.getStatusCode(response));
@@ -124,7 +123,7 @@ public class ServerTest {
 
     @Test
     public void redirected_route_is_responded_with_301_and_new_route() {
-        String request = "GET /initFromRedirect HTTP/1.1";
+        String request = "GET /redirect HTTP/1.1";
         String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("301", Parser.getStatusCode(response));
@@ -209,8 +208,7 @@ public class ServerTest {
         assertAll("post request",
             () -> {
                 String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
-                String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
-                String request = request_line + user_agent + content_type + content_length + body;
+                String request = request_line + content_type + content_length + body;
                 String response = runSessionAndRetrieveResponse(request);
 
                 assertEquals("201", Parser.getStatusCode(response));
@@ -238,8 +236,7 @@ public class ServerTest {
         assertAll("post request",
                 () -> {
                     String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
-                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
-                    String request = request_line + user_agent + content_type + content_length + body;
+                    String request = request_line + content_type + content_length + body;
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("201", Parser.getStatusCode(response));
@@ -288,8 +285,7 @@ public class ServerTest {
         assertAll("put request",
                 () -> {
                     String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
-                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
-                    String request = request_line + user_agent + content_type + content_length + body;
+                    String request = request_line + content_type + content_length + body;
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("201", Parser.getStatusCode(response));
@@ -308,8 +304,6 @@ public class ServerTest {
 
     @Test
     public void put_request_can_overwrite_existing_resource() {
-        String replaced_content_type = "Content-Type: text/plain" + Stringer.crlf;
-        String replaced_content_length = "Content-Length: 16" + Stringer.crlf;
         HTMLBuilder replaced_html = new HTMLBuilder();
         replaced_html.append("Hello kitty!");
         String replaced_body = Stringer.crlf + replaced_html.generate();
@@ -330,8 +324,9 @@ public class ServerTest {
                 },
                 () -> {
                     String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
-                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
-                    String request = request_line + user_agent + replaced_content_type + replaced_content_length + replaced_body;
+                    String replaced_content_type = "Content-Type: text/plain" + Stringer.crlf;
+                    String replaced_content_length = "Content-Length: 16" + Stringer.crlf;
+                    String request = request_line + replaced_content_type + replaced_content_length + replaced_body;
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("201", Parser.getStatusCode(response));

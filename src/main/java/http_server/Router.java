@@ -77,7 +77,7 @@ public class Router {
     private void setOptionsMethod(HashMap<String, Callback> methodCollection) {
         if (!methodCollection.containsKey(Methods.options)) {
             methodCollection.put(Methods.options, (Request request, Response response) -> {
-                response.initFromOptions(createOptionsHeader(request.getRoute()));
+                response.options(createOptionsHeader(request.getRoute()));
             });
         }
     }
@@ -120,7 +120,7 @@ public class Router {
         String directoryHTML = new DirectoryPageCreator(directoryContents, staticDirectoryRelativePath).generateHTML();
 
         get(staticDirectoryRelativePath, (Request request, Response response) -> {
-            response.initFromBody(directoryHTML.getBytes(), MIMETypes.html);
+            response.sendBody(directoryHTML.getBytes(), MIMETypes.html);
         });
     }
 
@@ -130,7 +130,7 @@ public class Router {
             String filePath = staticDirectoryRelativePath + "/" + fileName;
 
             get(filePath, (Request request, Response response) -> {
-                response.initFromFile("/" + fileName);
+                response.sendFile("/" + fileName);
             });
         }
     }
@@ -138,7 +138,7 @@ public class Router {
     public void saveResource(String resourcePath, String fileType, byte[] content) {
         FileHandler.writeFile(getFullStaticDirectoryPath() + resourcePath, fileType, content);
         get(resourcePath, (Request request, Response response) -> {
-            response.initFromFile(resourcePath + "." + fileType);
+            response.sendFile(resourcePath + "." + fileType);
         });
     }
 

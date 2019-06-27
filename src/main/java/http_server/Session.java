@@ -28,13 +28,7 @@ public class Session implements Runnable {
             String input = client.readData();
 
             Request request = RequestCreator.from(input);
-            Response response = new Response(router,request);
-
-            if (response.requestIsValid()) {
-                router.fillResponseForRequest(request, response);
-            }
-
-            byte[] httpResponse = response.getBytes();
+            byte[] httpResponse = new Response(router,request).create();
             client.sendBinary(httpResponse);
 
             close();
