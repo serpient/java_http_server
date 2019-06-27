@@ -89,9 +89,7 @@ public class FileHandler {
 
         createDirectories(Paths.get(trimLastResource(intendedFilePath)));
 
-        try (OutputStream out = new BufferedOutputStream(
-            Files.newOutputStream(path))
-        ) {
+        try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {
             out.write(fileContents, 0, fileContents.length);
         } catch (IOException e) {
             System.err.println(e);

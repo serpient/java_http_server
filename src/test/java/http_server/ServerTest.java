@@ -1,18 +1,27 @@
 package http_server;
 
 import file_handler.FileHandler;
+import html_builder.HTMLBuilder;
+import http_protocol.Headers;
+import http_protocol.Parser;
 import http_protocol.Stringer;
 import mocks.MockClientSocket;
 import mocks.MockRouter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServerTest {
     Router router = new MockRouter().getApp();
+
+    private String runSessionAndRetrieveResponse(String request) {
+        MockClientSocket mockClientSocket = new MockClientSocket(request);
+        Session session = new Session(mockClientSocket, router);
+        session.run();
+        return mockClientSocket.getSentData();
+    }
 
     @BeforeEach
     public void prepFiles() {
@@ -29,37 +38,30 @@ public class ServerTest {
     @Test
     public void GET_Request_Is_Responded_With_Headers_And_No_Body() {
         String request = "GET /simple_get HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals(true, Parser.getHeaders(response).containsKey("Date"));
         assertEquals(true, Parser.getHeaders(response).containsKey("Server"));
+        assertEquals(null, Parser.getBody(response));
     }
 
     @Test
     public void HEAD_Request_Is_Responded_With_Headers_Only() {
         String request = "HEAD /simple_get HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals(true, Parser.getHeaders(response).containsKey("Date"));
         assertEquals(true, Parser.getHeaders(response).containsKey("Server"));
+        assertEquals(null, Parser.getBody(response));
     }
 
 
     @Test
     public void GET_Request_Is_Responded_With_Headers_And_Body() {
         String request = "GET /harry_potter HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("text/plain", Parser.getHeaders(response).get("Content-Type"));
@@ -70,10 +72,7 @@ public class ServerTest {
     @Test
     public void HEAD_request_is_responded_with_headers_only_even_if_body_exists() {
         String request = "HEAD /get_with_body HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("text/plain", Parser.getHeaders(response).get("Content-Type"));
@@ -85,10 +84,7 @@ public class ServerTest {
     @Test
     public void GET_request_is_responded_with_404_when_resource_invalid() {
         String request = "GET /resource_not_found HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("404", Parser.getStatusCode(response));
     }
@@ -101,11 +97,7 @@ public class ServerTest {
         String content_length = "Content-Length: 47" + Stringer.crlf;
         String body = Stringer.crlf + "Here are all my favorite movies:\n" + "- Harry Potter";
         String request = request_line + user_agent + content_type + content_length + body;
-
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("201", Parser.getStatusCode(response));
         assertEquals("/echo_body", Parser.getHeaders(response).get("Location"));
@@ -114,22 +106,17 @@ public class ServerTest {
     @Test
     public void OPTIONS_request_is_responded_with_current_methods_available_On_route() {
         String request = "OPTIONS /method_options HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("OPTIONS, GET, HEAD", Parser.getHeaders(response).get("Allow"));
+        assertEquals(null, Parser.getBody(response));
     }
 
     @Test
     public void valid_route_but_invalid_method_is_responded_with_405_not_allowed() {
         String request = "GET /get_with_body HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("405", Parser.getStatusCode(response));
         assertEquals("OPTIONS, HEAD", Parser.getHeaders(response).get("Allow"));
@@ -137,11 +124,8 @@ public class ServerTest {
 
     @Test
     public void redirected_route_is_responded_with_301_and_new_route() {
-        String request = "GET /redirect HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String request = "GET /initFromRedirect HTTP/1.1";
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("301", Parser.getStatusCode(response));
         assertEquals("http://127.0.0.1:5000/simple_get", Parser.getHeaders(response).get("Location"));
@@ -167,10 +151,7 @@ public class ServerTest {
     @Test
     public void navigating_to_static_directory_generates_HTML_directory() {
         String request = "GET /public HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
@@ -180,10 +161,7 @@ public class ServerTest {
     @Test
     public void navigating_to_base_path_redirects_to_static_directory() {
         String request = "GET / HTTP/1.1";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("301", Parser.getStatusCode(response));
         assertEquals("http://127.0.0.1:5000/public", Parser.getHeaders(response).get("Location"));
@@ -192,39 +170,31 @@ public class ServerTest {
     @Test
     public void navigating_to_directory_file_sends_back_file() {
         String request = "GET /public/Home.html HTTP/1.1";
-        String body = "<!DOCTYPE html>" +
-                "<html lang=\"en\">" +
-                "<head>" +
-                "    <meta charset=\"UTF-8\">" +
-                "    <title>Home Page</title>" +
-                "</head>" +
-                "<body BGCOLOR=\"FFFFFF\">" +
-                "<h1>HELLO!!</h1>" +
-                "<p>This is a very simple HTML document</p>" +
-                "<p>It only has two paragraphs</p>" +
-                "</body>" +
+        String body = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <title>Home Page</title>\n" +
+                "</head>\n" +
+                "<body BGCOLOR=\"FFFFFF\">\n" +
+                "\n" +
+                "<h1>HELLO!!</h1>\n" +
+                "<p>This is a very simple HTML document</p>\n" +
+                "<p>It only has two paragraphs</p>\n" +
+                "\n" +
+                "</body>\n" +
                 "</html>";
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-        session.run();
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
-        assertEquals("226", Parser.getHeaders(response).get("Content-Length"));
         assertEquals(body, Parser.getBody(response));
     }
 
     @Test
     public void navigating_to_directory_image_sends_back_image() {
         String request = "GET /public/water.png HTTP/1.1";
-
-        MockClientSocket mockClientSocket = new MockClientSocket(request);
-        Session session = new Session(mockClientSocket, router);
-
-        session.run();
-
-        String response = mockClientSocket.getSentData();
+        String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("image/png", Parser.getHeaders(response).get("Content-Type"));
@@ -241,10 +211,7 @@ public class ServerTest {
                 String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
                 String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                 String request = request_line + user_agent + content_type + content_length + body;
-                MockClientSocket mockClientSocket = new MockClientSocket(request);
-                Session session = new Session(mockClientSocket, router);
-                session.run();
-                String response = mockClientSocket.getSentData();
+                String response = runSessionAndRetrieveResponse(request);
 
                 assertEquals("201", Parser.getStatusCode(response));
                 assertEquals("/dog/1", Parser.getHeaders(response).get("Location"));
@@ -252,10 +219,7 @@ public class ServerTest {
             },
             () -> {
                 String request = "GET /dog/1 HTTP/1.1";
-                MockClientSocket mockClientSocket = new MockClientSocket(request);
-                Session session = new Session(mockClientSocket, router);
-                session.run();
-                String response = mockClientSocket.getSentData();
+                String response = runSessionAndRetrieveResponse(request);
 
                 assertEquals("200", Parser.getStatusCode(response));
                 assertEquals(body.trim(), Parser.getBody(response));
@@ -276,10 +240,7 @@ public class ServerTest {
                     String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
                     String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                     String request = request_line + user_agent + content_type + content_length + body;
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-                    session.run();
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("201", Parser.getStatusCode(response));
                     assertEquals("/dog/1", Parser.getHeaders(response).get("Location"));
@@ -287,12 +248,7 @@ public class ServerTest {
                 },
                 () -> {
                     String request = "GET /dog/1 HTTP/1.1";
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-
-                    session.run();
-
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
@@ -305,25 +261,16 @@ public class ServerTest {
     public void post_request_with_no_body_does_not_create_a_resource() {
         assertAll("post request",
                 () -> {
-                    String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
-                    String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
-                    String request = request_line + user_agent;
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-                    session.run();
-                    String response = mockClientSocket.getSentData();
+                    String request = "POST /dog HTTP/1.1" + Stringer.crlf;
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("204", Parser.getStatusCode(response));
                     assertEquals(null, Parser.getBody(response));
+                    assertEquals(null, Parser.getHeaders(response).get(Headers.location));
                 },
                 () -> {
                     String request = "GET /dog/1 HTTP/1.1";
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-
-                    session.run();
-
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("404", Parser.getStatusCode(response));
                 }
@@ -343,22 +290,14 @@ public class ServerTest {
                     String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
                     String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                     String request = request_line + user_agent + content_type + content_length + body;
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-                    session.run();
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("201", Parser.getStatusCode(response));
                     assertEquals(null, Parser.getBody(response));
                 },
                 () -> {
                     String request = "GET /cat/1 HTTP/1.1";
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-
-                    session.run();
-
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
@@ -385,10 +324,7 @@ public class ServerTest {
                     String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
                     String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                     String request = request_line + user_agent + content_type + content_length + body;
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-                    session.run();
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("201", Parser.getStatusCode(response));
                 },
@@ -396,21 +332,13 @@ public class ServerTest {
                     String request_line = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
                     String user_agent = "User-Agent: HTTPTool/1.0" + Stringer.crlf;
                     String request = request_line + user_agent + replaced_content_type + replaced_content_length + replaced_body;
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-                    session.run();
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("201", Parser.getStatusCode(response));
                 },
                 () -> {
                     String request = "GET /cat/1 HTTP/1.1";
-                    MockClientSocket mockClientSocket = new MockClientSocket(request);
-                    Session session = new Session(mockClientSocket, router);
-
-                    session.run();
-
-                    String response = mockClientSocket.getSentData();
+                    String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("text/plain", Parser.getHeaders(response).get("Content-Type"));

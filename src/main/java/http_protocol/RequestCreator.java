@@ -1,6 +1,5 @@
 package http_protocol;
 
-import http_server.Parser;
 import http_server.Request;
 
 public class RequestCreator {
