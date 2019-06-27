@@ -1,4 +1,4 @@
-package http_server;
+package html_builder;
 
 public class HTMLBuilder {
     private String body;
@@ -20,16 +20,13 @@ public class HTMLBuilder {
     }
 
     public String generate() {
-        return  starterHTML() + headHTML() + starterBody() + body + endHtml();
-    }
-
-    private String starterHTML() {
-        return "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n";
+        return headHTML() + starterBody() + body + endHtml();
     }
 
     private String headHTML() {
-        return "<head>\n" +
+        return "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
                 "<meta charset=\"UTF-8\">\n" +
                 "<title>Home Page</title>\n" +
                 headerHTML +
