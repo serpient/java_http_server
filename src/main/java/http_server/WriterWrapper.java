@@ -1,6 +1,6 @@
 package http_server;
 
 public interface WriterWrapper {
-    void send(String data);
+    void send(byte[] data);
     void close();
 }

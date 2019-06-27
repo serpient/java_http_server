@@ -5,9 +5,9 @@ import http_server.WriterWrapper;
 public class MockWriter implements WriterWrapper {
     private String sentData = "";
 
-    public void send(String data) {
+    public void send(byte[] data) {
         if (data != null) {
-            sentData += data;
+            sentData += new String(data);
         }
     }
 

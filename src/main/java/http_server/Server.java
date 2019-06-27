@@ -30,14 +30,10 @@ public class Server {
             try {
                 clientSocket = server.accept();
 
-                Boolean autoFlushWriter = true;
                 OutputStream outputStream = clientSocket.getOutputStream();
-                PrintWriter printWriter = new PrintWriter(outputStream, autoFlushWriter);
-                WriterWrapper writer = new PrintWriterWrapper(printWriter);
                 BufferedReader inputStream = new BufferedReader((new InputStreamReader(clientSocket.getInputStream())));
-
-                ClientSocket clientSocketWrapper = new ClientSocket(clientSocket, inputStream, writer);
-                clientSocketWrapper.setOutputStream(outputStream);
+                ClientSocket clientSocketWrapper = new ClientSocket(clientSocket, inputStream,
+                        new StreamWriter(outputStream));
 
                 Session session = new Session(clientSocketWrapper, router);
 

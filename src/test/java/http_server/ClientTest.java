@@ -21,7 +21,7 @@ public class ClientTest {
 
     @Test
     public void clientWritesToStream() {
-        clientSocket.sendData(testInput);
+        clientSocket.sendBinary(testInput.getBytes());
 
         assertEquals(testInput, output.getSentData());
     }
