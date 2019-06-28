@@ -12,6 +12,7 @@ public class DirectoryPageCreatorTest {
     public void prepFiles() {
         FileHandler.deleteDirectory("./public/dog");
         FileHandler.deleteDirectory("./public/cat");
+        FileHandler.deleteDirectory("./public/delete_me.txt");
     }
 
     @AfterEach

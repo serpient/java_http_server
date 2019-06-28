@@ -83,6 +83,7 @@ public class Response {
     public void sendFile(String path) {
         String filePath = Router.getFullStaticDirectoryPath() + path;
         byte[] file = FileHandler.readFile(filePath);
+        System.err.println(file);
         this.body = file;
         setHeader(Headers.contentType, FileHandler.getFileType(filePath));
         setHeader(Headers.contentLength, file.length + "");
@@ -113,6 +114,10 @@ public class Response {
         setHeader(Headers.contentType, contentType);
     }
 
+    public void successfulDelete() {
+        this.status = StatusCode.noContent;
+    }
+
     public void options(String allowedHeaders) {
         setHeader(Headers.allowedHeaders, allowedHeaders);
     }
@@ -126,7 +131,11 @@ public class Response {
         setHeader(Headers.server, "JavaServer/0.1");
     }
 
-    private void setHeader(String headerName, String headerValue) {
+    public void setHeader(String headerName, String headerValue) {
         headers.put(headerName, headerValue);
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
