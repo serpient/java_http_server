@@ -4,6 +4,7 @@ import directory_page_creator.DirectoryPageCreator;
 import file_handler.FileHandler;
 import http_protocol.MIMETypes;
 import http_protocol.Methods;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
@@ -27,6 +28,7 @@ public class Router {
         methods.add(Methods.post);
         methods.add(Methods.put);
         methods.add(Methods.options);
+        methods.add(Methods.delete);
     }
 
     public HashMap<String, HashMap<String, Callback>> getRouter() {
@@ -59,6 +61,10 @@ public class Router {
 
     public void put(String route, Callback handler) {
         updateRoutes(Methods.put, route, handler);
+    }
+
+    public void delete(String route, Callback handler) {
+        updateRoutes(Methods.delete, route, handler);
     }
 
     public void all(String route, Callback handler) {
@@ -132,6 +138,11 @@ public class Router {
             get(filePath, (Request request, Response response) -> {
                 response.sendFile("/" + fileName);
             });
+
+            delete(filePath, (Request request, Response response) -> {
+                deleteResource(request.getRoute());
+                response.successfulDelete();
+            });
         }
     }
 
@@ -139,6 +150,10 @@ public class Router {
         FileHandler.writeFile(getFullStaticDirectoryPath() + resourcePath, fileType, content);
         get(resourcePath, (Request request, Response response) -> {
             response.sendFile(resourcePath + "." + fileType);
+        });
+        delete(resourcePath, (Request request, Response response) -> {
+            deleteResource(resourcePath + "." + fileType);
+            response.successfulDelete();
         });
     }
 
@@ -169,5 +184,11 @@ public class Router {
                     return Integer.parseInt(s.substring(idx + 1));
                 })
                 .max(Comparator.comparing(Integer::valueOf)).get();
+    }
+
+    public void deleteResource(String resourcePath) {
+        System.err.println(getFullStaticDirectoryPath() + resourcePath);
+        FileHandler.deleteFile(getFullStaticDirectoryPath() + resourcePath);
+        routes.remove(resourcePath);
     }
 }

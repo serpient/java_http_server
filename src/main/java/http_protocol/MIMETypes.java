@@ -8,15 +8,15 @@ public class MIMETypes {
     public static String css = "text/css";
     public static String jpeg = "image/jpeg";
     public static String png = "image/png";
-
-    private static HashMap<String, String> types = new HashMap<>();
+    private static HashMap<String, String> types = new HashMap<String, String>() {{
+        put(plain, "txt");
+        put(html, "html");
+        put(css, "css");
+        put(jpeg, "jpg");
+        put(png, "png");
+    }};
 
     public static String getFileType(String mimeType) {
-        types.put(plain, "txt");
-        types.put(html, "html");
-        types.put(css, "css");
-        types.put(jpeg, "jpg");
-        types.put(png, "png");
         return types.get(mimeType);
     }
 }
