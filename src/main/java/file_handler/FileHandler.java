@@ -118,11 +118,11 @@ public class FileHandler {
         Path path = Paths.get(filePath);
 
         try {
-            Files.deleteIfExists(path);
+            Files.delete(path);
+            System.err.println("DELETED");
         } catch (DirectoryNotEmptyException x) {
             System.err.format("%s not empty%n", path);
         } catch (IOException x) {
-            // File permission problems are caught here.
             System.err.println(x);
         }
     }

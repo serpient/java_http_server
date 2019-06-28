@@ -27,8 +27,9 @@ public class ServerTest {
     public void prepFiles() {
         FileHandler.deleteDirectory("./public/dog");
         FileHandler.deleteDirectory("./public/cat");
+        FileHandler.deleteDirectory("./public/delete_me.txt");
     }
-    
+
     @AfterEach
     public void cleanUpFiles() {
         FileHandler.deleteDirectory("./public/dog");
@@ -338,6 +339,41 @@ public class ServerTest {
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("text/plain", Parser.getHeaders(response).get("Content-Type"));
                     assertEquals(replaced_body.trim(), Parser.getBody(response));
+                }
+        );
+    }
+
+    @Test
+    public void delete_request_deletes_the_resource() {
+        FileHandler.writeFile("./public/delete_me", "txt", "DELETE ME".getBytes());
+        router.get("/delete_me.txt", (Request request, Response response) -> {
+            response.sendFile("/" + "delete_me.txt");
+        });
+
+        router.delete("/delete_me.txt", (Request request, Response response) -> {
+            router.deleteResource(request.getRoute());
+            response.successfulDelete();
+        });
+
+        assertAll("delete request",
+                () -> {
+                    String request = "GET /delete_me.txt HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals("DELETE ME", Parser.getBody(response));
+                },
+                () -> {
+                    String request = "DELETE /delete_me.txt HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("204", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request = "GET /delete_me.txt HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("404", Parser.getStatusCode(response));
                 }
         );
     }
