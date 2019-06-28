@@ -1,6 +1,6 @@
 package repository;
 
-import http_protocol.MIMETypes;
+import http_standards.MIMETypes;
 import mocks.MockRepository;
 import org.junit.jupiter.api.Test;
 import java.util.List;

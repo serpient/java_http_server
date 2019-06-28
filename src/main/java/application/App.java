@@ -1,6 +1,6 @@
 package application;
-import http_protocol.MIMETypes;
-import http_protocol.StatusCode;
+import http_standards.MIMETypes;
+import http_standards.StatusCode;
 import http_server.Request;
 import http_server.Response;
 import http_server.Server;
@@ -38,7 +38,6 @@ public class App {
             response.head(bodyContent.getBytes(), MIMETypes.plain);
         });
 
-
         app.post("/echo_body", (Request request, Response response) -> {
             response.sendBody(request.getBody().getBytes(), request.getContentFileType());
             response.setStatus(StatusCode.ok);
@@ -64,12 +63,6 @@ public class App {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
             app.saveResource(uniqueRoute, request.getContentFileType(), request.getBody().getBytes());
             response.successfulPost(uniqueRoute);
-            System.err.println("created new resource!=" + uniqueRoute);
-        });
-
-        app.delete("/dog/1", (Request request, Response response) -> {
-            app.deleteResource(request.getRoute());
-            response.successfulDelete();
         });
 
         app.put("/cat/1", (Request request, Response response) -> {

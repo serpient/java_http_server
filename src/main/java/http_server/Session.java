@@ -1,6 +1,6 @@
 package http_server;
 
-import http_protocol.RequestCreator;
+import http_standards.RequestCreator;
 
 public class Session implements Runnable {
     private final SocketWrapper client;

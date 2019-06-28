@@ -1,13 +1,12 @@
 package http_server;
 
 import html_builder.HTMLBuilder;
-import http_protocol.Headers;
-import http_protocol.Parser;
-import http_protocol.Stringer;
+import http_standards.Headers;
+import http_standards.Parser;
+import http_standards.Stringer;
 import mocks.MockClientSocket;
 import mocks.MockRepository;
 import mocks.MockRouter;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.Repository;

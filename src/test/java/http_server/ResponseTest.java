@@ -1,10 +1,10 @@
 package http_server;
 
-import http_protocol.Headers;
-import http_protocol.MIMETypes;
-import http_protocol.RequestCreator;
-import http_protocol.StatusCode;
-import http_protocol.Stringer;
+import http_standards.Headers;
+import http_standards.MIMETypes;
+import http_standards.RequestCreator;
+import http_standards.StatusCode;
+import http_standards.Stringer;
 import mocks.MockRepository;
 import mocks.MockRouter;
 import org.junit.jupiter.api.Test;

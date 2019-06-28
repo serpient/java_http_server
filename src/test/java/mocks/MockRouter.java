@@ -1,6 +1,6 @@
 package mocks;
 
-import http_protocol.MIMETypes;
+import http_standards.MIMETypes;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;

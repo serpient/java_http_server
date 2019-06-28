@@ -1,8 +1,8 @@
 package http_server;
 
 import directory_page_creator.DirectoryPageCreator;
-import http_protocol.MIMETypes;
-import http_protocol.Methods;
+import http_standards.MIMETypes;
+import http_standards.Methods;
 import repository.Repository;
 import repository.FileRepository;
 

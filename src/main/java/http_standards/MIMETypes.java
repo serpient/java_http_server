@@ -1,4 +1,4 @@
-package http_protocol;
+package http_standards;
 
 import java.util.HashMap;
 import java.util.Map;

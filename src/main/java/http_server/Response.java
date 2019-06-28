@@ -1,8 +1,8 @@
 package http_server;
 
-import http_protocol.Headers;
-import http_protocol.Methods;
-import http_protocol.StatusCode;
+import http_standards.Headers;
+import http_standards.Methods;
+import http_standards.StatusCode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

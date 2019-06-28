@@ -1,6 +1,6 @@
 package http_server;
 
-import http_protocol.Stringer;
+import http_standards.Stringer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.LinkedHashMap;

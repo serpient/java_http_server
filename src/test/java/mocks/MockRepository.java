@@ -1,6 +1,6 @@
 package mocks;
 
-import http_protocol.MIMETypes;
+import http_standards.MIMETypes;
 import repository.MockFile;
 import repository.Repository;
 
@@ -48,7 +48,6 @@ public class MockRepository implements Repository  {
         if (memoryRepository.containsKey(path)) {
             return memoryRepository.get(path).content();
         } else if (memoryRepository.containsKey(trimmedPath(path)))  {
-            System.err.println(trimmedPath(path));
             return memoryRepository.get(trimmedPath(path)).content();
         } else {
             throw new NullPointerException();
