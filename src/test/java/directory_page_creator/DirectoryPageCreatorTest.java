@@ -1,16 +1,30 @@
-package http_server;
+package directory_page_creator;
 
-import org.junit.Test;
-
+import file_handler.FileHandler;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
 
-public class DirectoryCreatorTest {
+public class DirectoryPageCreatorTest {
+    @BeforeEach
+    public void prepFiles() {
+        FileHandler.deleteDirectory("./public/dog");
+        FileHandler.deleteDirectory("./public/cat");
+    }
+
+    @AfterEach
+    public void cleanUpFiles() {
+        FileHandler.deleteDirectory("./public/dog");
+        FileHandler.deleteDirectory("./public/cat");
+    }
+
     @Test
     public void static_files_in_public_directory_are_rendered_as_a_HTML_page_with_contents_listed() {
         String path = "./public";
         List<String> directoryContents = new FileHandler().readDirectoryContents(path);
-        DirectoryCreator directoryCreator = new DirectoryCreator(directoryContents, "/public");
+        DirectoryPageCreator directoryPageCreator = new DirectoryPageCreator(directoryContents, "/public");
 
         String directoryBody = "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
@@ -28,6 +42,6 @@ public class DirectoryCreatorTest {
                 "</div></body>\n" +
                 "</html>";
 
-        assertEquals(directoryBody, directoryCreator.generateHTML());
+        assertEquals(directoryBody, directoryPageCreator.generateHTML());
     }
 }

@@ -1,15 +1,13 @@
 package http_server;
 
 import java.io.BufferedReader;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.io.IOException;
 
 public class ClientSocket implements SocketWrapper {
     private final Socket clientSocket;
     private BufferedReader inputStream;
-    private WriterWrapper writer;
-    private OutputStream outputStream;
+    private WriterWrapper outputStream;
 
     char[] characterBuffer = new char[100000];
 
@@ -20,7 +18,7 @@ public class ClientSocket implements SocketWrapper {
     ) {
         this.clientSocket = clientSocket;
         this.inputStream = inputStream;
-        this.writer = outputStream;
+        this.outputStream = outputStream;
     }
 
     public String readData() {
@@ -33,14 +31,9 @@ public class ClientSocket implements SocketWrapper {
         }
     }
 
-    public void sendData(String data) {
-        writer.send(data);
-    }
-
     public void close() {
         try {
             inputStream.close();
-            writer.close();
             outputStream.close();
             clientSocket.close();
         } catch (IOException e) {
@@ -57,16 +50,7 @@ public class ClientSocket implements SocketWrapper {
         }
     }
 
-    public void setOutputStream(OutputStream outputStream) {
-        this.outputStream = outputStream;
-    }
-
     public void sendBinary(byte[] binary) {
-        try {
-            outputStream.write(binary);
-            outputStream.flush();
-        } catch (IOException e) {
-            System.err.println(e);
-        }
+        outputStream.send(binary);
     }
 }

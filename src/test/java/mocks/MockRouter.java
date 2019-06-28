@@ -1,9 +1,9 @@
 package mocks;
 
+import http_protocol.MIMETypes;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;
-
 import java.nio.file.Paths;
 
 public class MockRouter {
@@ -27,17 +27,19 @@ public class MockRouter {
         app.head("/simple_get", (Request request, Response response) -> {});
 
         app.head("/get_with_body", (Request request, Response response) -> {
-            response.setBody("Here are all my favorite movies:\n" + "- Harry " +
-                    "Potter\n");
+            String bodyContent = "Here are all my favorite movies:\n" + "- Harry " +
+                    "Potter\n";
+            response.head(bodyContent.getBytes(), MIMETypes.plain);
         });
 
         app.get("/harry_potter", (Request request, Response response) -> {
-            response.setBody("Here are all my favorite movies:\n" + "- Harry " +
-                    "Potter\n");
+            String bodyContent = "Here are all my favorite movies:\n" + "- Harry " +
+                    "Potter\n";
+            response.sendBody(bodyContent.getBytes(), MIMETypes.plain);
         });
 
         app.post("/echo_body", (Request request, Response response) -> {
-            response.setBody(request.getBody());
+            response.successfulPost(request.getRoute());
         });
 
         app.get("/method_options", (Request request, Response response) -> {});
@@ -46,6 +48,17 @@ public class MockRouter {
 
         app.all("/redirect", (Request request, Response response) -> {
             response.redirect("/simple_get");
+        });
+
+        app.post("/dog", (Request request, Response response) -> {
+            String uniqueRoute = app.getUniqueRoute(request.getRoute());
+            app.saveResource(uniqueRoute, request.getContentFileType(), request.getBody().getBytes());
+            response.successfulPost(uniqueRoute);
+        });
+
+        app.put("/cat/1", (Request request, Response response) -> {
+            app.saveResource(request.getRoute(), request.getContentFileType(), request.getBody().getBytes());
+            response.successfulPut();
         });
 
         return app;

@@ -1,13 +1,11 @@
 package http_server;
 
 import mocks.MockWriter;
-import org.junit.Test;
-
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.net.Socket;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ClientTest {
 
@@ -23,7 +21,7 @@ public class ClientTest {
 
     @Test
     public void clientWritesToStream() {
-        clientSocket.sendData(testInput);
+        clientSocket.sendBinary(testInput.getBytes());
 
         assertEquals(testInput, output.getSentData());
     }

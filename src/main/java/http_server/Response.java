@@ -1,55 +1,132 @@
 package http_server;
 
+import file_handler.FileHandler;
 import http_protocol.Headers;
+import http_protocol.Methods;
 import http_protocol.StatusCode;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 
 public class Response {
-    private LinkedHashMap<String, String> headerCollection = new LinkedHashMap<>();
+    private LinkedHashMap<String, String> headers = new LinkedHashMap<>();
     private String status;
-    private String responseBody = "";
-    private byte[] binaryFile;
+    private byte[] body;
+    private Router router;
+    private Request request;
 
-    public Response() {
+    public Response(Router router, Request request) {
         this.status = StatusCode.ok;
+        this.router = router;
+        this.request = request;
     }
 
-    public void setHeader(String headerName, String headerValue) {
-        headerCollection.put(headerName, headerValue);
+    public byte[] create() {
+        if (requestIsValid()) {
+            router.fillResponseForRequest(request, this);
+        }
+
+        return getBytes();
     }
 
-    public LinkedHashMap<String, String> getHeaders() {
-        return headerCollection;
+    public boolean requestIsValid() {
+        if (router.routeInvalid(request.getRoute())) {
+            notFound();
+            return false;
+        }
+
+        if (router.methodInvalid(request.getRoute(), request.getMethod())) {
+            methodNotAllowed();
+            return false;
+        }
+
+        if (Methods.creationMethods().contains(request.getMethod()) && request.getBody() == null) {
+            noContent();
+            return false;
+        }
+
+        return true;
     }
 
-    public void setStatus(String newStatus) {
-        this.status = newStatus;
+    public byte[] getBytes() {
+        initDefaultHeaders();
+        return ResponseByteAssembler.generateBytes(status, headers, body);
     }
 
     public String getStatus() {
         return status;
     }
 
-    public void setBody(String newBody) {
-        this.responseBody = newBody;
+    public byte[] getBody() {
+        return body;
     }
 
-    public String getBody() {
-        return responseBody;
+    public LinkedHashMap<String, String> getHeaders() {
+        return headers;
+    }
+
+    private void notFound() {
+        this.status = StatusCode.notFound;
+    }
+
+    private void methodNotAllowed() {
+        this.status = StatusCode.methodNotAllowed;
+        setHeader(Headers.allowedHeaders, router.createOptionsHeader(request.getRoute()));
+    }
+
+    private void noContent() {
+        this.status = StatusCode.noContent;
+    }
+
+    public void sendFile(String path) {
+        String filePath = Router.getFullStaticDirectoryPath() + path;
+        byte[] file = FileHandler.readFile(filePath);
+        this.body = file;
+        setHeader(Headers.contentType, FileHandler.getFileType(filePath));
+        setHeader(Headers.contentLength, file.length + "");
     }
 
     public void redirect(String redirectedRoute) {
-        setStatus(StatusCode.moved);
+        status = StatusCode.moved;
         setHeader(Headers.location, "http://127.0.0.1:5000" + redirectedRoute);
     }
 
-    public void saveBinary(byte[] bytes)
-    {
-        setHeader(Headers.contentLength, bytes.length + "");
-        this.binaryFile = bytes;
+    public void sendBody(byte[] bodyContent, String contentType) {
+        setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
+        setHeader(Headers.contentType, contentType);
+        this.body = bodyContent;
     }
 
-    public byte[] getBinaryFile() {
-        return binaryFile;
+    public void successfulPut() {
+        this.status = StatusCode.created;
+    }
+
+    public void successfulPost(String resourceLocation) {
+        setHeader(Headers.location, resourceLocation);
+        this.status = StatusCode.created;
+    }
+
+    public void head(byte[] bodyContent, String contentType) {
+        setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
+        setHeader(Headers.contentType, contentType);
+    }
+
+    public void options(String allowedHeaders) {
+        setHeader(Headers.allowedHeaders, allowedHeaders);
+    }
+
+    private void initDefaultHeaders() {
+        ZonedDateTime date = LocalDateTime.now().atZone(ZoneId.of("GMT+00"));
+        DateTimeFormatter byPattern = DateTimeFormatter.ofPattern("E, MMM dd yyyy HH:mm:ss z");
+        String currentDateTime = date.format(byPattern);
+
+        setHeader(Headers.date, currentDateTime);
+        setHeader(Headers.server, "JavaServer/0.1");
+    }
+
+    private void setHeader(String headerName, String headerValue) {
+        headers.put(headerName, headerValue);
     }
 }

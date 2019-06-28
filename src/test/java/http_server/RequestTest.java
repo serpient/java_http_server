@@ -2,11 +2,9 @@ package http_server;
 
 import http_protocol.RequestCreator;
 import http_protocol.Stringer;
-import org.junit.Test;
-
 import java.util.HashMap;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RequestTest {
     String post_request_line = "POST /echo_body HTTP/1.1" + Stringer.crlf;
@@ -71,6 +69,6 @@ public class RequestTest {
 
     @Test
     public void request_with_NO_body_parse_body() {
-        assertEquals("", h_request.getBody());
+        assertEquals(null, h_request.getBody());
     }
 }

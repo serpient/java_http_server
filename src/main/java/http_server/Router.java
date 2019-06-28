@@ -1,20 +1,23 @@
 package http_server;
 
-import http_protocol.Headers;
+import directory_page_creator.DirectoryPageCreator;
+import file_handler.FileHandler;
+import http_protocol.MIMETypes;
 import http_protocol.Methods;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class Router {
     private HashMap<String, HashMap<String, Callback>> routes;
     private Set<String> methods;
     private Path basePath;
-    private Path staticDirectoryPath;
+    private static Path fullStaticDirectoryPath;
 
     public Router() {
         this.routes = new HashMap<>();
@@ -23,22 +26,23 @@ public class Router {
         methods.add(Methods.head);
         methods.add(Methods.post);
         methods.add(Methods.put);
+        methods.add(Methods.options);
     }
 
     public HashMap<String, HashMap<String, Callback>> getRouter() {
         return routes;
     }
 
-    public void basePath(Path path) {
-        this.basePath = path;
+    public Set<String> getMethods() {
+        return methods;
     }
 
-    public void staticDirectory(String newStaticDirectoryPath) {
-        staticDirectoryPath = Paths.get(basePath.toString(), newStaticDirectoryPath);
-        List<String> directoryContents = FileHandler.readDirectoryContents(staticDirectoryPath.toString());
+    public static Path getFullStaticDirectoryPath() {
+        return fullStaticDirectoryPath;
+    }
 
-        createContentRoutes(directoryContents, newStaticDirectoryPath);
-        createStaticDirectoryRoute(directoryContents, newStaticDirectoryPath);
+    public void basePath(Path path) {
+        this.basePath = path;
     }
 
     public void get(String route, Callback handler) {
@@ -63,50 +67,107 @@ public class Router {
         }
     }
 
-    public Set<String> getMethods() {
-        return methods;
-    }
-
-    public HashMap<String, Callback> getMethodCollection(String route) {
-        return routes.get(route) == null
-                ? new HashMap<>()
-                : routes.get(route);
-    }
-
-    public void runCallback(Request request, Response response) {
-        getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
-    }
-
     private void updateRoutes(String method, String route, Callback handler) {
         HashMap<String, Callback> methodCollection = getMethodCollection(route);
         methodCollection.put(method, handler);
+        setOptionsMethod(methodCollection);
         routes.put(route, methodCollection);
     }
 
-    private void createStaticDirectoryRoute(List<String> directoryContents, String newStaticDirectoryPath) {
-        String directoryHTML = new DirectoryCreator(directoryContents, newStaticDirectoryPath).generateHTML();
+    private void setOptionsMethod(HashMap<String, Callback> methodCollection) {
+        if (!methodCollection.containsKey(Methods.options)) {
+            methodCollection.put(Methods.options, (Request request, Response response) -> {
+                response.options(createOptionsHeader(request.getRoute()));
+            });
+        }
+    }
 
-        get(newStaticDirectoryPath, (Request request, Response response) -> {
-            response.setHeader(Headers.contentType, "text/html");
-            response.setBody(directoryHTML);
+    public String createOptionsHeader(String route) {
+        Set<String> availableMethods = new LinkedHashSet<>();
+        availableMethods.add(Methods.options);
+        for (String method : getMethods()) {
+            if (getMethodCollection(route).containsKey(method)) {
+                availableMethods.add(method);
+            }
+        }
+        return availableMethods.toString().replaceAll("[\\[\\]]", "");
+    }
+
+    public boolean routeInvalid(String route) {
+        return getMethodCollection(route).isEmpty();
+    }
+
+    public boolean methodInvalid(String route, String method) {
+        return !getMethodCollection(route).containsKey(method);
+    }
+
+    public HashMap<String, Callback> getMethodCollection(String route) {
+        return routes.get(route) == null ? new HashMap<>() : routes.get(route);
+    }
+
+    public void fillResponseForRequest(Request request, Response response) {
+        getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
+    }
+
+    public void staticDirectory(String staticDirectoryRelativePath) {
+        fullStaticDirectoryPath = Paths.get(basePath.toString(), staticDirectoryRelativePath);
+        List<String> directoryContents = FileHandler.readDirectoryContents(fullStaticDirectoryPath.toString());
+        createResourceRoutes(directoryContents, staticDirectoryRelativePath);
+        createStaticDirectoryRoute(directoryContents, staticDirectoryRelativePath);
+    }
+
+    private void createStaticDirectoryRoute(List<String> directoryContents, String staticDirectoryRelativePath) {
+        String directoryHTML = new DirectoryPageCreator(directoryContents, staticDirectoryRelativePath).generateHTML();
+
+        get(staticDirectoryRelativePath, (Request request, Response response) -> {
+            response.sendBody(directoryHTML.getBytes(), MIMETypes.html);
         });
     }
 
-    private void createContentRoutes(List<String> directoryContents, String newStaticDirectoryPath) {
+    private void createResourceRoutes(List<String> directoryContents, String staticDirectoryRelativePath) {
         for (int i = 0; i < directoryContents.size(); i++) {
-
             String fileName = directoryContents.get(i);
-            String filePath = newStaticDirectoryPath + "/" +fileName;
+            String filePath = staticDirectoryRelativePath + "/" + fileName;
 
             get(filePath, (Request request, Response response) -> {
-                if (FileHandler.getFileType(filePath).matches("image(.*)")) {
-                    byte[] img = FileHandler.readFile(staticDirectoryPath + "/" + fileName);
-                    response.saveBinary(img);
-                } else {
-                    response.setBody(FileHandler.getFileContents(staticDirectoryPath + "/" + fileName));
-                }
-                response.setHeader(Headers.contentType, FileHandler.getFileType(filePath));
+                response.sendFile("/" + fileName);
             });
         }
+    }
+
+    public void saveResource(String resourcePath, String fileType, byte[] content) {
+        FileHandler.writeFile(getFullStaticDirectoryPath() + resourcePath, fileType, content);
+        get(resourcePath, (Request request, Response response) -> {
+            response.sendFile(resourcePath + "." + fileType);
+        });
+    }
+
+    public String getUniqueRoute(String path) {
+        return path + "/" + getAvailableRouteId(path);
+    }
+
+    private int getAvailableRouteId(String route) {
+        if (findMatchingRoutes(route).count() == 0) {
+            return 1;
+        } else {
+            return findGreatestResourceId(route) + 1;
+        }
+    }
+
+    private Stream<String> findMatchingRoutes(String route) {
+        return routes.keySet()
+                .stream()
+                .filter(s -> s.startsWith(route + "/") && !s.endsWith(":id"));
+    }
+
+    private int findGreatestResourceId(String route) {
+        return routes.keySet()
+                .stream()
+                .filter(s -> s.startsWith(route + "/") && !s.endsWith(":id"))
+                .map(s -> {
+                    int idx = s.lastIndexOf("/");
+                    return Integer.parseInt(s.substring(idx + 1));
+                })
+                .max(Comparator.comparing(Integer::valueOf)).get();
     }
 }

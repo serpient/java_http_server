@@ -28,10 +28,8 @@ public class Session implements Runnable {
             String input = client.readData();
 
             Request request = RequestCreator.from(input);
-            Response response = new Response();
-            ResponseSender sender = new ResponseSender(client, response, request, router);
-
-            sender.sendBinary();
+            byte[] httpResponse = new Response(router,request).create();
+            client.sendBinary(httpResponse);
 
             close();
         }
