@@ -4,19 +4,23 @@ import http_protocol.MIMETypes;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;
+import repository.Repository;
+
 import java.nio.file.Paths;
 
 public class MockRouter {
-    public Router getApp() {
-        return createRouter();
+    public Router getApp(Repository repository) {
+        return createRouter(repository);
     }
 
-    private Router createRouter() {
+    private Router createRouter(Repository repository) {
         Router app = new Router();
 
         app.basePath(Paths.get(System.getProperty("user.dir")));
 
         app.staticDirectory("/public");
+
+        app.setRepository(repository);
 
         app.get("/", (Request request, Response response) -> {
             response.redirect("/public");

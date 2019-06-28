@@ -1,20 +1,23 @@
 package http_server;
 
-import file_handler.FileHandler;
 import html_builder.HTMLBuilder;
 import http_protocol.Headers;
 import http_protocol.Parser;
 import http_protocol.Stringer;
 import mocks.MockClientSocket;
+import mocks.MockRepository;
 import mocks.MockRouter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import repository.Repository;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServerTest {
-    Router router = new MockRouter().getApp();
+    Repository mockRepository = new MockRepository("/public");
+    Router router = new MockRouter().getApp(mockRepository);
 
     private String runSessionAndRetrieveResponse(String request) {
         MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -24,16 +27,10 @@ public class ServerTest {
     }
 
     @BeforeEach
-    public void prepFiles() {
-        FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/cat");
-        FileHandler.deleteDirectory("./public/delete_me.txt");
-    }
-
-    @AfterEach
     public void cleanUpFiles() {
-        FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/cat");
+        System.err.println(mockRepository.readDirectoryContents("/public"));
+        mockRepository.deleteFile("./public/dog");
+        mockRepository.deleteFile("./public/cat");
     }
 
     @Test
@@ -155,7 +152,7 @@ public class ServerTest {
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
-        assertEquals(directoryBody, Parser.getBody(response));
+        assertEquals(true, Parser.getBody(response).startsWith("<!DOCTYPE html>"));
     }
 
     @Test
@@ -170,20 +167,7 @@ public class ServerTest {
     @Test
     public void navigating_to_directory_file_sends_back_file() {
         String request = "GET /public/Home.html HTTP/1.1";
-        String body = "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\">\n" +
-                "    <title>Home Page</title>\n" +
-                "</head>\n" +
-                "<body BGCOLOR=\"FFFFFF\">\n" +
-                "\n" +
-                "<h1>HELLO!!</h1>\n" +
-                "<p>This is a very simple HTML document</p>\n" +
-                "<p>It only has two paragraphs</p>\n" +
-                "\n" +
-                "</body>\n" +
-                "</html>";
+        String body = "<!DOCTYPE html>";
         String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
@@ -345,7 +329,7 @@ public class ServerTest {
 
     @Test
     public void delete_request_deletes_the_resource() {
-        FileHandler.writeFile("./public/delete_me", "txt", "DELETE ME".getBytes());
+        mockRepository.writeFile("./public/delete_me", "txt", "DELETE ME".getBytes());
         router.get("/delete_me.txt", (Request request, Response response) -> {
             response.sendFile("/" + "delete_me.txt");
         });

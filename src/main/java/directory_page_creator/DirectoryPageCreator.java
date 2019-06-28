@@ -1,8 +1,7 @@
 package directory_page_creator;
 
-import file_handler.FileHandler;
 import html_builder.HTMLBuilder;
-
+import repository.FileRepository;
 import java.util.List;
 
 public class DirectoryPageCreator {
@@ -20,7 +19,7 @@ public class DirectoryPageCreator {
 
         return builder
             .addHeader("<style>")
-            .addHeader(FileHandler.getFileContents(directoryCSSPath))
+            .addHeader(new FileRepository().getFileContents(directoryCSSPath))
             .addHeader("</style>")
             .append("<div class='directory-page'>")
             .append("<h1>Directory for " + staticDirectoryPath + "</h1>")

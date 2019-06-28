@@ -1,17 +1,20 @@
 package http_server;
 
-import file_handler.FileHandler;
 import http_protocol.Headers;
 import http_protocol.MIMETypes;
 import http_protocol.RequestCreator;
 import http_protocol.StatusCode;
 import http_protocol.Stringer;
+import mocks.MockRepository;
 import mocks.MockRouter;
 import org.junit.jupiter.api.Test;
+import repository.Repository;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResponseTest {
-    Router mockRouter = new MockRouter().getApp();
+    Repository mockRepository = new MockRepository("/public");
+    Router mockRouter = new MockRouter().getApp(mockRepository);
 
     private Response createResponseObject(String request) {
         Request requestData = RequestCreator.from(request);
@@ -77,7 +80,7 @@ public class ResponseTest {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
         response.sendFile("/water.png");
-        byte[] readImage = FileHandler.readFile("./public/water.png");
+        byte[] readImage = mockRepository.readFile("./public/water.png");
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals(MIMETypes.png, response.getHeaders().get(Headers.contentType));

@@ -1,6 +1,7 @@
 package http_protocol;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class MIMETypes {
     public static String plain = "text/plain";
@@ -18,5 +19,17 @@ public class MIMETypes {
 
     public static String getFileType(String mimeType) {
         return types.get(mimeType);
+    }
+
+    public static String getMIMEType(String fileType) {
+        String fileMIMEType = plain;
+        for(Map.Entry<String, String> entry : types.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (value.contains(fileType)) {
+                fileMIMEType = key;
+            }
+        }
+        return fileMIMEType;
     }
 }

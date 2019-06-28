@@ -1,9 +1,10 @@
 package http_server;
 
 import directory_page_creator.DirectoryPageCreator;
-import file_handler.FileHandler;
 import http_protocol.MIMETypes;
 import http_protocol.Methods;
+import repository.Repository;
+import repository.FileRepository;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,6 +20,7 @@ public class Router {
     private Set<String> methods;
     private Path basePath;
     private static Path fullStaticDirectoryPath;
+    private Repository repository;
 
     public Router() {
         this.routes = new HashMap<>();
@@ -29,6 +31,15 @@ public class Router {
         methods.add(Methods.put);
         methods.add(Methods.options);
         methods.add(Methods.delete);
+        repository = new FileRepository();
+    }
+
+    public void setRepository(Repository repository) {
+        this.repository = repository;
+    }
+
+    public Repository getRepository() {
+        return repository;
     }
 
     public HashMap<String, HashMap<String, Callback>> getRouter() {
@@ -117,7 +128,7 @@ public class Router {
 
     public void staticDirectory(String staticDirectoryRelativePath) {
         fullStaticDirectoryPath = Paths.get(basePath.toString(), staticDirectoryRelativePath);
-        List<String> directoryContents = FileHandler.readDirectoryContents(fullStaticDirectoryPath.toString());
+        List<String> directoryContents = repository.readDirectoryContents(fullStaticDirectoryPath.toString());
         createResourceRoutes(directoryContents, staticDirectoryRelativePath);
         createStaticDirectoryRoute(directoryContents, staticDirectoryRelativePath);
     }
@@ -147,7 +158,7 @@ public class Router {
     }
 
     public void saveResource(String resourcePath, String fileType, byte[] content) {
-        FileHandler.writeFile(getFullStaticDirectoryPath() + resourcePath, fileType, content);
+        repository.writeFile(getFullStaticDirectoryPath() + resourcePath, fileType, content);
         get(resourcePath, (Request request, Response response) -> {
             response.sendFile(resourcePath + "." + fileType);
         });
@@ -188,7 +199,7 @@ public class Router {
 
     public void deleteResource(String resourcePath) {
         System.err.println(getFullStaticDirectoryPath() + resourcePath);
-        FileHandler.deleteFile(getFullStaticDirectoryPath() + resourcePath);
+        repository.deleteFile(getFullStaticDirectoryPath() + resourcePath);
         routes.remove(resourcePath);
     }
 }

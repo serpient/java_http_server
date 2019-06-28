@@ -1,4 +1,6 @@
-package file_handler;
+package repository;
+
+import com.google.common.primitives.Chars;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -20,8 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class FileHandler {
-    public static List<String> readDirectoryContents(String path) {
+public class FileRepository implements Repository {
+    public List<String> readDirectoryContents(String path) {
         List<String> fileList = new ArrayList<String>();
 
         Path dir = Paths.get(path);
@@ -37,7 +39,7 @@ public class FileHandler {
         return fileList;
     }
 
-    public static byte[] readFile(String path) {
+    public byte[] readFile(String path) {
         Path file = Paths.get(path);
         try {
             byte[] fileBytes = Files.readAllBytes(file);
@@ -74,7 +76,7 @@ public class FileHandler {
         return fileContents;
     }
 
-    public static String getFileType(String path) {
+    public String getFileType(String path) {
         Path file = Paths.get(path);
         try {
             return Files.probeContentType(file);
@@ -84,10 +86,10 @@ public class FileHandler {
         }
     }
 
-    public static void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
+    public void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
         Path path = Paths.get(intendedFilePath + "." + fileType);
 
-        createDirectories(Paths.get(trimLastResource(intendedFilePath)));
+        createDirectories(Paths.get(Repository.trimLastResource(intendedFilePath)));
 
         try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {
             out.write(fileContents, 0, fileContents.length);
@@ -96,7 +98,7 @@ public class FileHandler {
         }
     }
 
-    public static void createDirectories(Path directoryPaths) {
+    public void createDirectories(Path directoryPaths) {
         try {
             Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rwxrwxrwx");
             FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(perms);
@@ -106,7 +108,7 @@ public class FileHandler {
         }
     }
 
-    public static void deleteDirectory(String directoryPath) {
+    public void deleteDirectory(String directoryPath) {
         List<String> directoryContents = readDirectoryContents(directoryPath);
         for (int i = 0; i < directoryContents.size(); i++) {
             deleteFile(directoryPath + "/" + directoryContents.get(i));
@@ -114,7 +116,7 @@ public class FileHandler {
         deleteFile(directoryPath);
     }
 
-    public static void deleteFile(String filePath) {
+    public void deleteFile(String filePath) {
         Path path = Paths.get(filePath);
 
         try {
@@ -125,11 +127,6 @@ public class FileHandler {
         } catch (IOException x) {
             System.err.println(x);
         }
-    }
-
-    public static String trimLastResource(String path) {
-        int lastSlashIndex = path.lastIndexOf("/");
-        return path.substring(0, lastSlashIndex);
     }
 
 }
