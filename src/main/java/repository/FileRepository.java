@@ -1,4 +1,4 @@
-package file_handler;
+package repository;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -20,15 +20,43 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class FileHandler {
-    public static List<String> readDirectoryContents(String path) {
+public class FileRepository implements Repository {
+    public List<String> readDirectoryContents(String path) {
         List<String> fileList = new ArrayList<String>();
 
         Path dir = Paths.get(path);
         String allowedFileTypes = "[!.DS_]*";
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, allowedFileTypes)) {
             for (Path file: stream) {
-                fileList.add(file.getFileName().toString());
+                if (file.toFile().isFile()) {
+                    String name = file.toString();
+                    fileList.add(name.substring(path.endsWith("/") ? path.length() : path.length() + 1));
+                } else {
+                    List<String> subContents = readDirectoryContents(file.toString(), path);
+                    fileList.addAll(subContents);
+                }
+            }
+        } catch (IOException | DirectoryIteratorException x) {
+            System.err.println(x);
+        }
+        return fileList;
+    }
+
+    public static List<String> readDirectoryContents(String path, String dirPath) {
+        List<String> fileList = new ArrayList<String>();
+
+        Path dir = Paths.get(path);
+        String allowedFileTypes = "[!.DS_]*";
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, allowedFileTypes)) {
+            for (Path file: stream) {
+                if (file.toFile().isFile()) {
+                    String name = file.toString();
+                    System.err.println(path);
+                    fileList.add(name.substring(dirPath.endsWith("/") ? dirPath.length() : dirPath.length() + 1));
+                } else {
+                    List<String> subContents = readDirectoryContents(file.toString(), dirPath);
+                    fileList.addAll(subContents);
+                }
             }
         } catch (IOException | DirectoryIteratorException x) {
             System.err.println(x);
@@ -37,7 +65,7 @@ public class FileHandler {
         return fileList;
     }
 
-    public static byte[] readFile(String path) {
+    public byte[] readFile(String path) {
         Path file = Paths.get(path);
         try {
             byte[] fileBytes = Files.readAllBytes(file);
@@ -74,7 +102,7 @@ public class FileHandler {
         return fileContents;
     }
 
-    public static String getFileType(String path) {
+    public String getFileType(String path) {
         Path file = Paths.get(path);
         try {
             return Files.probeContentType(file);
@@ -84,7 +112,7 @@ public class FileHandler {
         }
     }
 
-    public static void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
+    public void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
         Path path = Paths.get(intendedFilePath + "." + fileType);
 
         createDirectories(Paths.get(trimLastResource(intendedFilePath)));
@@ -96,7 +124,7 @@ public class FileHandler {
         }
     }
 
-    public static void createDirectories(Path directoryPaths) {
+    public void createDirectories(Path directoryPaths) {
         try {
             Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rwxrwxrwx");
             FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(perms);
@@ -106,7 +134,7 @@ public class FileHandler {
         }
     }
 
-    public static void deleteDirectory(String directoryPath) {
+    public void deleteDirectory(String directoryPath) {
         List<String> directoryContents = readDirectoryContents(directoryPath);
         for (int i = 0; i < directoryContents.size(); i++) {
             deleteFile(directoryPath + "/" + directoryContents.get(i));
@@ -114,7 +142,7 @@ public class FileHandler {
         deleteFile(directoryPath);
     }
 
-    public static void deleteFile(String filePath) {
+    public void deleteFile(String filePath) {
         Path path = Paths.get(filePath);
 
         try {
@@ -127,9 +155,8 @@ public class FileHandler {
         }
     }
 
-    public static String trimLastResource(String path) {
+    public String trimLastResource(String path) {
         int lastSlashIndex = path.lastIndexOf("/");
         return path.substring(0, lastSlashIndex);
     }
-
 }

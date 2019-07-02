@@ -1,4 +1,4 @@
-package http_protocol;
+package http_standards;
 
 public class Headers {
     public static String date = "Date";

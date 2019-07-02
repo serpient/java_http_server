@@ -1,12 +1,20 @@
 package mocks;
 
-import http_protocol.MIMETypes;
+import http_standards.MIMETypes;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;
+import repository.Repository;
+
 import java.nio.file.Paths;
 
 public class MockRouter {
+    Repository repository;
+
+    public MockRouter(Repository repository) {
+        this.repository = repository;
+    }
+
     public Router getApp() {
         return createRouter();
     }
@@ -17,6 +25,8 @@ public class MockRouter {
         app.basePath(Paths.get(System.getProperty("user.dir")));
 
         app.staticDirectory("/public");
+
+        app.setRepository(repository);
 
         app.get("/", (Request request, Response response) -> {
             response.redirect("/public");
@@ -52,8 +62,9 @@ public class MockRouter {
 
         app.post("/dog", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
-            app.saveResource(uniqueRoute, request.getContentFileType(), request.getBody().getBytes());
-            response.successfulPost(uniqueRoute);
+            String resourceRoute = app.saveResource(uniqueRoute, request.getContentFileType(),
+                    request.getBody().getBytes());
+            response.successfulPost(resourceRoute);
         });
 
         app.put("/cat/1", (Request request, Response response) -> {

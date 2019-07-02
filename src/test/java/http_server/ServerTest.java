@@ -1,20 +1,22 @@
 package http_server;
 
-import file_handler.FileHandler;
 import html_builder.HTMLBuilder;
-import http_protocol.Headers;
-import http_protocol.Parser;
-import http_protocol.Stringer;
+import http_standards.Headers;
+import http_standards.MIMETypes;
+import http_standards.Parser;
+import http_standards.Stringer;
 import mocks.MockClientSocket;
+import mocks.MockRepository;
 import mocks.MockRouter;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import repository.Repository;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServerTest {
-    Router router = new MockRouter().getApp();
+    Router router;
 
     private String runSessionAndRetrieveResponse(String request) {
         MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -24,16 +26,13 @@ public class ServerTest {
     }
 
     @BeforeEach
-    public void prepFiles() {
-        FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/cat");
-        FileHandler.deleteDirectory("./public/delete_me.txt");
-    }
-
-    @AfterEach
-    public void cleanUpFiles() {
-        FileHandler.deleteDirectory("./public/dog");
-        FileHandler.deleteDirectory("./public/cat");
+    public void cleanRouter() {
+        Repository mockRepository = new MockRepository("/public");
+        mockRepository.writeFile("./public/Home.html", MIMETypes.html, "<!DOCTYPE html>\n".getBytes());
+        mockRepository.writeFile("./public/TurtleTab.txt", MIMETypes.plain, "TurtleTabs a Google".getBytes());
+        mockRepository.writeFile("./public/water.png", MIMETypes.png, "water image".getBytes());
+        mockRepository.writeFile("./public/japan.png", MIMETypes.png, "japan image".getBytes());
+        router = new MockRouter(mockRepository).getApp();
     }
 
     @Test
@@ -140,9 +139,9 @@ public class ServerTest {
             "<body>\n" +
             "<div class='directory-page'><h1>Directory for /public</h1><hr /><ul>\n" +
             "<li class='bullets'><a href='/public/Home.html'>Home.html</a></li>\n" +
+            "<li class='bullets'><a href='/public/water.png'>water.png</a></li>\n" +
             "<li class='bullets'><a href='/public/TurtleTab.txt'>TurtleTab.txt</a></li>\n" +
             "<li class='bullets'><a href='/public/japan.png'>japan.png</a></li>\n" +
-            "<li class='bullets'><a href='/public/water.png'>water.png</a></li>\n" +
             "</ul>\n" +
             "</div></body>\n" +
             "</html>";
@@ -155,7 +154,7 @@ public class ServerTest {
 
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
-        assertEquals(directoryBody, Parser.getBody(response));
+        assertEquals(true, Parser.getBody(response).startsWith("<!DOCTYPE html>"));
     }
 
     @Test
@@ -170,20 +169,7 @@ public class ServerTest {
     @Test
     public void navigating_to_directory_file_sends_back_file() {
         String request = "GET /public/Home.html HTTP/1.1";
-        String body = "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\">\n" +
-                "    <title>Home Page</title>\n" +
-                "</head>\n" +
-                "<body BGCOLOR=\"FFFFFF\">\n" +
-                "\n" +
-                "<h1>HELLO!!</h1>\n" +
-                "<p>This is a very simple HTML document</p>\n" +
-                "<p>It only has two paragraphs</p>\n" +
-                "\n" +
-                "</body>\n" +
-                "</html>";
+        String body = "<!DOCTYPE html>";
         String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("200", Parser.getStatusCode(response));
@@ -247,6 +233,15 @@ public class ServerTest {
                 () -> {
                     String request = "GET /dog/1 HTTP/1.1";
                     String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
+                    assertEquals(body.trim(), Parser.getBody(response));
+                },
+                () -> {
+                    String request = "GET /dog/1.html HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+                    System.err.println(response);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
@@ -345,26 +340,18 @@ public class ServerTest {
 
     @Test
     public void delete_request_deletes_the_resource() {
-        FileHandler.writeFile("./public/delete_me", "txt", "DELETE ME".getBytes());
-        router.get("/delete_me.txt", (Request request, Response response) -> {
-            response.sendFile("/" + "delete_me.txt");
-        });
-
-        router.delete("/delete_me.txt", (Request request, Response response) -> {
-            router.deleteResource(request.getRoute());
-            response.successfulDelete();
-        });
+        router.saveResource("/delete_me", "txt", "DELETE ME".getBytes());
 
         assertAll("delete request",
                 () -> {
-                    String request = "GET /delete_me.txt HTTP/1.1";
+                    String request = "GET /delete_me HTTP/1.1";
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("DELETE ME", Parser.getBody(response));
                 },
                 () -> {
-                    String request = "DELETE /delete_me.txt HTTP/1.1";
+                    String request = "DELETE /delete_me HTTP/1.1";
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("204", Parser.getStatusCode(response));

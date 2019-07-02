@@ -1,7 +1,7 @@
 package http_server;
 
-import http_protocol.Headers;
-import http_protocol.MIMETypes;
+import http_standards.Headers;
+import http_standards.MIMETypes;
 
 import java.util.HashMap;
 

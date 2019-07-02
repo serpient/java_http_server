@@ -1,7 +1,7 @@
 package http_server;
 
-import http_protocol.RequestCreator;
-import http_protocol.Stringer;
+import http_standards.RequestCreator;
+import http_standards.Stringer;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;

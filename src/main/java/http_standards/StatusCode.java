@@ -1,4 +1,4 @@
-package http_protocol;
+package http_standards;
 
 public class StatusCode {
     public static String ok = "200 OK";

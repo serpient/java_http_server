@@ -1,9 +1,8 @@
 package http_server;
 
-import file_handler.FileHandler;
-import http_protocol.Headers;
-import http_protocol.Methods;
-import http_protocol.StatusCode;
+import http_standards.Headers;
+import http_standards.Methods;
+import http_standards.StatusCode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -47,6 +46,7 @@ public class Response {
             return false;
         }
 
+
         return true;
     }
 
@@ -81,11 +81,10 @@ public class Response {
     }
 
     public void sendFile(String path) {
-        String filePath = Router.getFullStaticDirectoryPath() + path;
-        byte[] file = FileHandler.readFile(filePath);
-        System.err.println(file);
+        String filePath = router.getFullStaticDirectoryPath() + path;
+        byte[] file = router.getRepository().readFile(filePath);
         this.body = file;
-        setHeader(Headers.contentType, FileHandler.getFileType(filePath));
+        setHeader(Headers.contentType, router.getRepository().getFileType(filePath));
         setHeader(Headers.contentLength, file.length + "");
     }
 

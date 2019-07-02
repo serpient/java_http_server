@@ -1,14 +1,18 @@
 package http_server;
 
-import http_protocol.MIMETypes;
-import http_protocol.RequestCreator;
-import http_protocol.Stringer;
+import http_standards.MIMETypes;
+import http_standards.Methods;
+import http_standards.Parser;
+import http_standards.RequestCreator;
+import http_standards.Stringer;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RouterTest {
@@ -175,5 +179,31 @@ public class RouterTest {
     @Test
     public void Router_can_set_first_resource_id_for_a_parent_route() {
         assertEquals("/dog/1", router.getUniqueRoute("/dog"));
+    }
+
+    @Test
+    public void Router_can_save_resources() {
+        router.basePath(Paths.get(System.getProperty("user.dir")));
+        router.staticDirectory("/public");
+        router.saveResource("/dog/1", "html", "DELETE ME".getBytes());
+
+        assertEquals(true, router.getMethodCollection("/dog/1").containsKey(Methods.get));
+        assertEquals(true, router.getMethodCollection("/dog/1.html").containsKey(Methods.get));
+        assertEquals(true, router.getMethodCollection("/public/dog/1").containsKey(Methods.get));
+        assertEquals(true, router.getMethodCollection("/public/dog/1.html").containsKey(Methods.get));
+    }
+
+    @Test
+    public void Router_can_delete_resources_and_routes() {
+        router.basePath(Paths.get(System.getProperty("user.dir")));
+        router.staticDirectory("/public");
+        router.saveResource("/delete_me", "txt", "DELETE ME".getBytes());
+
+        router.deleteResource("/delete_me", "txt");
+
+        assertEquals(false, router.getMethodCollection("/delete_me").containsKey(Methods.get));
+        assertEquals(false, router.getMethodCollection("/delete_me.txt").containsKey(Methods.get));
+        assertEquals(false, router.getMethodCollection("/public/delete_me").containsKey(Methods.get));
+        assertEquals(false, router.getMethodCollection("/public/delete_me.txt").containsKey(Methods.get));
     }
 }

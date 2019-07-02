@@ -1,17 +1,31 @@
 package http_server;
 
-import file_handler.FileHandler;
-import http_protocol.Headers;
-import http_protocol.MIMETypes;
-import http_protocol.RequestCreator;
-import http_protocol.StatusCode;
-import http_protocol.Stringer;
+import http_standards.Headers;
+import http_standards.MIMETypes;
+import http_standards.RequestCreator;
+import http_standards.StatusCode;
+import http_standards.Stringer;
+import mocks.MockRepository;
 import mocks.MockRouter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import repository.Repository;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResponseTest {
-    Router mockRouter = new MockRouter().getApp();
+    Repository mockRepository;
+    Router mockRouter;
+
+    @BeforeEach
+    public void cleanRepository() {
+        mockRepository = new MockRepository("/public");
+        mockRepository.writeFile("./public/Home.html", MIMETypes.html, "<!DOCTYPE html>\n".getBytes());
+        mockRepository.writeFile("./public/TurtleTab.txt", MIMETypes.plain, "TurtleTabs a Google".getBytes());
+        mockRepository.writeFile("./public/water.png", MIMETypes.png, "water image".getBytes());
+        mockRepository.writeFile("./public/japan.png", MIMETypes.png, "japan image".getBytes());
+        mockRouter = new MockRouter(mockRepository).getApp();
+    }
 
     private Response createResponseObject(String request) {
         Request requestData = RequestCreator.from(request);
@@ -77,7 +91,7 @@ public class ResponseTest {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
         response.sendFile("/water.png");
-        byte[] readImage = FileHandler.readFile("./public/water.png");
+        byte[] readImage = mockRepository.readFile("./public/water.png");
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals(MIMETypes.png, response.getHeaders().get(Headers.contentType));
