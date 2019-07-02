@@ -6,26 +6,26 @@ import http_server.Response;
 import http_server.Server;
 import http_server.Router;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class App {
     public static void main(String args[]) {
-        Router app = createRouter();
+        HashMap<String, String> settings = parseServerSettings(args);
+        int port = Integer.parseInt(settings.get("port"));
+        String directory = settings.get("directory");
 
-        Server server = new Server(setPortNumber(args), app);
+        Router app = createRouter(directory);
+        Server server = new Server(port, app);
         server.start();
     }
 
-    private static Router createRouter() {
-        Router app = new Router();
+    private static Router createRouter(String directory) {
+        Router app = new Router(directory);
 
-        app.basePath(getProjectBasePath());
-
-        app.staticDirectory("/public");
+        app.staticDirectory("/images");
 
         app.get("/", (Request request, Response response) -> {
-            response.redirect("/public");
+            response.redirect("/images");
         });
 
         app.get("/simple_get", (Request request, Response response) -> {});
@@ -74,13 +74,21 @@ public class App {
         return app;
     }
 
-    private static int setPortNumber(String[] terminal_args) {
-        return terminal_args.length > 0
-                ? Integer.parseInt(terminal_args[0])
-                : 5000;
-    }
+    private static HashMap<String, String> parseServerSettings(String[] args) {
+        HashMap<String, String> customSettings = new HashMap<>();
+        customSettings.put("port", "5000");
+        customSettings.put("directory", "");
 
-    private static Path getProjectBasePath() {
-        return Paths.get(System.getProperty("user.dir"));
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-p")) {
+                customSettings.put("port", args[i + 1]);
+            }
+
+            if (args[i].equals("-d")) {
+                customSettings.put("directory", args[i + 1]);
+            }
+        }
+
+        return customSettings;
     }
 }

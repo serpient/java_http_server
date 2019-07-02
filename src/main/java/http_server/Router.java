@@ -25,6 +25,17 @@ public class Router {
     private static String dirPath;
 
     public Router() {
+        initializeRouter();
+    }
+
+    public Router(String staticDirectoryRelativePath) {
+        initializeRouter();
+        if (staticDirectoryRelativePath != "") {
+            staticDirectory(staticDirectoryRelativePath);
+        }
+    }
+
+    private void initializeRouter() {
         this.routes = new HashMap<>();
         this.methods = new LinkedHashSet<>();
         methods.add(Methods.get);
@@ -34,6 +45,7 @@ public class Router {
         methods.add(Methods.options);
         methods.add(Methods.delete);
         repository = new FileRepository();
+        basePath = Paths.get(System.getProperty("user.dir"));
     }
 
     public void setRepository(Repository repository) {
