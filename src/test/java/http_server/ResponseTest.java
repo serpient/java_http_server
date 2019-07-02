@@ -7,14 +7,25 @@ import http_standards.StatusCode;
 import http_standards.Stringer;
 import mocks.MockRepository;
 import mocks.MockRouter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.Repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResponseTest {
-    Repository mockRepository = new MockRepository("/public");
-    Router mockRouter = new MockRouter().getApp(mockRepository);
+    Repository mockRepository;
+    Router mockRouter;
+
+    @BeforeEach
+    public void cleanRepository() {
+        mockRepository = new MockRepository("/public");
+        mockRepository.writeFile("./public/Home.html", MIMETypes.html, "<!DOCTYPE html>\n".getBytes());
+        mockRepository.writeFile("./public/TurtleTab.txt", MIMETypes.plain, "TurtleTabs a Google".getBytes());
+        mockRepository.writeFile("./public/water.png", MIMETypes.png, "water image".getBytes());
+        mockRepository.writeFile("./public/japan.png", MIMETypes.png, "japan image".getBytes());
+        mockRouter = new MockRouter(mockRepository).getApp();
+    }
 
     private Response createResponseObject(String request) {
         Request requestData = RequestCreator.from(request);

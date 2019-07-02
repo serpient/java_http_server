@@ -1,10 +1,23 @@
 package repository;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FileRepositoryTest {
-    FileRepository fileHandler = new FileRepository();
+    FileRepository fileHandler;
+
+    @BeforeEach
+    public void cleanRepository() {
+        fileHandler = new FileRepository();
+    }
+
+    @AfterEach
+    public void deleteRepository() {
+        fileHandler.deleteDirectory("./public/test");
+    }
+
 
     @Test
     public void static_files_in_public_directory_are_rendered_as_a_HTML_page_with_contents_listed() {
@@ -72,40 +85,61 @@ public class FileRepositoryTest {
 
     @Test
     public void file_can_be_written_to_directory() {
-        String path = "./public/dog/1";
+        String path = "./public/test/1";
         String body = "Dog Breed: Corgi";
         fileHandler.writeFile(path, "txt", body.getBytes());
-        assertEquals(body, new String(fileHandler.readFile("./public/dog/1.txt")));
+        assertEquals(body, new String(fileHandler.readFile("./public/test/1.txt")));
     }
 
     @Test
     public void path_can_trim_last_resource() {
-        String path = "./public/dog/1";
-        assertEquals("./public/dog", Repository.trimLastResource(path));
+        String path = "./public/test/1";
+        assertEquals("./public/test", fileHandler.trimLastResource(path));
     }
 
     @Test
     public void file_can_be_deleted() {
-        String path = "./public/dog/1";
+        String path = "./public/test/1";
         String body = "Dog Breed: Corgi";
         fileHandler.writeFile(path, "txt", body.getBytes());
 
 
-        String deleteThisPath = "./public/dog/1.txt";
+        String deleteThisPath = "./public/test/1.txt";
         fileHandler.deleteFile(deleteThisPath);
-        assertEquals(null, fileHandler.readFile("./public/dog/1.txt"));
+        assertEquals(null, fileHandler.readFile("./public/test/1.txt"));
     }
 
 
     @Test
     public void directory_can_be_deleted() {
-        String path = "./public/dog/1";
+        String path = "./public/test/1";
         String body = "Dog Breed: Corgi";
         fileHandler.writeFile(path, "txt", body.getBytes());
 
-        String deleteThisPath = "./public/dog";
+        String deleteThisPath = "./public/test";
         fileHandler.deleteDirectory(deleteThisPath);
-        assertEquals(null, fileHandler.readFile("./public/dog/1.txt"));
-        assertEquals(null, fileHandler.readFile("./public/dog"));
+        assertEquals(null, fileHandler.readFile("./public/test/1.txt"));
+        assertEquals(null, fileHandler.readFile("./public/test"));
+    }
+
+    @Test
+    public void directory_can_read_subfolders() {
+        String path = "./public/test/1";
+        String body = "Dog Breed: Corgi";
+        fileHandler.writeFile(path, "txt", body.getBytes());
+
+        String path2 = "./public/test/2";
+        String body2 = "<h1>CAT Breed: Corgi</h1>";
+        fileHandler.writeFile(path2, "html", body2.getBytes());
+
+
+        String basePath = "./public/";
+
+        assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("Home.html"));
+        assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("TurtleTab.txt"));
+        assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("japan.png"));
+        assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("water.png"));
+        assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("test/2.html"));
+        assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("test/1.txt"));
     }
 }

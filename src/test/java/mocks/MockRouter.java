@@ -9,11 +9,17 @@ import repository.Repository;
 import java.nio.file.Paths;
 
 public class MockRouter {
-    public Router getApp(Repository repository) {
-        return createRouter(repository);
+    Repository repository;
+
+    public MockRouter(Repository repository) {
+        this.repository = repository;
     }
 
-    private Router createRouter(Repository repository) {
+    public Router getApp() {
+        return createRouter();
+    }
+
+    private Router createRouter() {
         Router app = new Router();
 
         app.basePath(Paths.get(System.getProperty("user.dir")));
@@ -56,8 +62,9 @@ public class MockRouter {
 
         app.post("/dog", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
-            app.saveResource(uniqueRoute, request.getContentFileType(), request.getBody().getBytes());
-            response.successfulPost(uniqueRoute);
+            String resourceRoute = app.saveResource(uniqueRoute, request.getContentFileType(),
+                    request.getBody().getBytes());
+            response.successfulPost(resourceRoute);
         });
 
         app.put("/cat/1", (Request request, Response response) -> {

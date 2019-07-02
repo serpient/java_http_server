@@ -2,6 +2,7 @@ package http_server;
 
 import html_builder.HTMLBuilder;
 import http_standards.Headers;
+import http_standards.MIMETypes;
 import http_standards.Parser;
 import http_standards.Stringer;
 import mocks.MockClientSocket;
@@ -15,8 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServerTest {
-    Repository mockRepository = new MockRepository("/public");
-    Router router = new MockRouter().getApp(mockRepository);
+    Router router;
 
     private String runSessionAndRetrieveResponse(String request) {
         MockClientSocket mockClientSocket = new MockClientSocket(request);
@@ -26,10 +26,13 @@ public class ServerTest {
     }
 
     @BeforeEach
-    public void cleanUpFiles() {
-        System.err.println(mockRepository.readDirectoryContents("/public"));
-        mockRepository.deleteFile("./public/dog");
-        mockRepository.deleteFile("./public/cat");
+    public void cleanRouter() {
+        Repository mockRepository = new MockRepository("/public");
+        mockRepository.writeFile("./public/Home.html", MIMETypes.html, "<!DOCTYPE html>\n".getBytes());
+        mockRepository.writeFile("./public/TurtleTab.txt", MIMETypes.plain, "TurtleTabs a Google".getBytes());
+        mockRepository.writeFile("./public/water.png", MIMETypes.png, "water image".getBytes());
+        mockRepository.writeFile("./public/japan.png", MIMETypes.png, "japan image".getBytes());
+        router = new MockRouter(mockRepository).getApp();
     }
 
     @Test
@@ -136,9 +139,9 @@ public class ServerTest {
             "<body>\n" +
             "<div class='directory-page'><h1>Directory for /public</h1><hr /><ul>\n" +
             "<li class='bullets'><a href='/public/Home.html'>Home.html</a></li>\n" +
+            "<li class='bullets'><a href='/public/water.png'>water.png</a></li>\n" +
             "<li class='bullets'><a href='/public/TurtleTab.txt'>TurtleTab.txt</a></li>\n" +
             "<li class='bullets'><a href='/public/japan.png'>japan.png</a></li>\n" +
-            "<li class='bullets'><a href='/public/water.png'>water.png</a></li>\n" +
             "</ul>\n" +
             "</div></body>\n" +
             "</html>";
@@ -230,6 +233,15 @@ public class ServerTest {
                 () -> {
                     String request = "GET /dog/1 HTTP/1.1";
                     String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
+                    assertEquals(body.trim(), Parser.getBody(response));
+                },
+                () -> {
+                    String request = "GET /dog/1.html HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+                    System.err.println(response);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
@@ -328,26 +340,18 @@ public class ServerTest {
 
     @Test
     public void delete_request_deletes_the_resource() {
-        mockRepository.writeFile("./public/delete_me", "txt", "DELETE ME".getBytes());
-        router.get("/delete_me.txt", (Request request, Response response) -> {
-            response.sendFile("/" + "delete_me.txt");
-        });
-
-        router.delete("/delete_me.txt", (Request request, Response response) -> {
-            router.deleteResource(request.getRoute());
-            response.successfulDelete();
-        });
+        router.saveResource("/delete_me", "txt", "DELETE ME".getBytes());
 
         assertAll("delete request",
                 () -> {
-                    String request = "GET /delete_me.txt HTTP/1.1";
+                    String request = "GET /delete_me HTTP/1.1";
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("DELETE ME", Parser.getBody(response));
                 },
                 () -> {
-                    String request = "DELETE /delete_me.txt HTTP/1.1";
+                    String request = "DELETE /delete_me HTTP/1.1";
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("204", Parser.getStatusCode(response));

@@ -1,7 +1,5 @@
 package repository;
 
-import com.google.common.primitives.Chars;
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,7 +28,35 @@ public class FileRepository implements Repository {
         String allowedFileTypes = "[!.DS_]*";
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, allowedFileTypes)) {
             for (Path file: stream) {
-                fileList.add(file.getFileName().toString());
+                if (file.toFile().isFile()) {
+                    String name = file.toString();
+                    fileList.add(name.substring(path.endsWith("/") ? path.length() : path.length() + 1));
+                } else {
+                    List<String> subContents = readDirectoryContents(file.toString(), path);
+                    fileList.addAll(subContents);
+                }
+            }
+        } catch (IOException | DirectoryIteratorException x) {
+            System.err.println(x);
+        }
+        return fileList;
+    }
+
+    public static List<String> readDirectoryContents(String path, String dirPath) {
+        List<String> fileList = new ArrayList<String>();
+
+        Path dir = Paths.get(path);
+        String allowedFileTypes = "[!.DS_]*";
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, allowedFileTypes)) {
+            for (Path file: stream) {
+                if (file.toFile().isFile()) {
+                    String name = file.toString();
+                    System.err.println(path);
+                    fileList.add(name.substring(dirPath.endsWith("/") ? dirPath.length() : dirPath.length() + 1));
+                } else {
+                    List<String> subContents = readDirectoryContents(file.toString(), dirPath);
+                    fileList.addAll(subContents);
+                }
             }
         } catch (IOException | DirectoryIteratorException x) {
             System.err.println(x);
@@ -89,7 +115,7 @@ public class FileRepository implements Repository {
     public void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
         Path path = Paths.get(intendedFilePath + "." + fileType);
 
-        createDirectories(Paths.get(Repository.trimLastResource(intendedFilePath)));
+        createDirectories(Paths.get(trimLastResource(intendedFilePath)));
 
         try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {
             out.write(fileContents, 0, fileContents.length);
@@ -129,4 +155,8 @@ public class FileRepository implements Repository {
         }
     }
 
+    public String trimLastResource(String path) {
+        int lastSlashIndex = path.lastIndexOf("/");
+        return path.substring(0, lastSlashIndex);
+    }
 }

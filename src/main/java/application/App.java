@@ -61,8 +61,9 @@ public class App {
 
         app.post("/dog", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
-            app.saveResource(uniqueRoute, request.getContentFileType(), request.getBody().getBytes());
-            response.successfulPost(uniqueRoute);
+            String resourceRoute = app.saveResource(uniqueRoute, request.getContentFileType(),
+                    request.getBody().getBytes());
+            response.successfulPost(resourceRoute);
         });
 
         app.put("/cat/1", (Request request, Response response) -> {

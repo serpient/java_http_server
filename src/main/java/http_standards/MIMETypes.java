@@ -9,13 +9,24 @@ public class MIMETypes {
     public static String css = "text/css";
     public static String jpeg = "image/jpeg";
     public static String png = "image/png";
+    public static String json = "application/json";
+    public static String xml = "text/xml";
+    public static String javascript = "application/javascript";
+
     private static HashMap<String, String> types = new HashMap<String, String>() {{
         put(plain, "txt");
         put(html, "html");
         put(css, "css");
         put(jpeg, "jpg");
         put(png, "png");
+        put(json, "json");
+        put(xml, "xml");
+        put(javascript, "js");
     }};
+
+    public static boolean isMIMEType(String mimeType) {
+        return types.containsKey(mimeType);
+    }
 
     public static String getFileType(String mimeType) {
         return types.get(mimeType);

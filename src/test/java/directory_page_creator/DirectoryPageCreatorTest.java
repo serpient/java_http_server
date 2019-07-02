@@ -1,7 +1,7 @@
 package directory_page_creator;
 
+import http_standards.MIMETypes;
 import mocks.MockRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.Repository;
@@ -10,18 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 public class DirectoryPageCreatorTest {
-    Repository repository = new MockRepository("/public");
-    @BeforeEach
-    public void prepFiles() {
-        repository.deleteDirectory("./public/dog");
-        repository.deleteDirectory("./public/cat");
-        repository.deleteDirectory("./public/delete_me.txt");
-    }
+    Repository repository;
 
-    @AfterEach
-    public void cleanUpFiles() {
-        repository.deleteDirectory("./public/dog");
-        repository.deleteDirectory("./public/cat");
+    @BeforeEach
+    public void createRepository() {
+        repository = new MockRepository("/public");
+        repository.writeFile("./public/Home.html", MIMETypes.html, "<!DOCTYPE html>\n".getBytes());
+        repository.writeFile("./public/TurtleTab.txt", MIMETypes.plain, "TurtleTabs a Google".getBytes());
+        repository.writeFile("./public/water.png", MIMETypes.png, "water image".getBytes());
+        repository.writeFile("./public/japan.png", MIMETypes.png, "japan image".getBytes());
     }
 
     @Test

@@ -2,13 +2,24 @@ package repository;
 
 import http_standards.MIMETypes;
 import mocks.MockRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MockRepositoryTest {
-    MockRepository repository = new MockRepository("/public");
+    MockRepository repository;
+
+    @BeforeEach
+    public void cleanRepository() {
+        repository = new MockRepository("/public");
+        repository.writeFile("./public/Home.html", MIMETypes.html, "<!DOCTYPE html>\n".getBytes());
+        repository.writeFile("./public/TurtleTab.txt", MIMETypes.plain, "TurtleTabs a Google".getBytes());
+        repository.writeFile("./public/water.png", MIMETypes.png, "water image".getBytes());
+        repository.writeFile("./public/japan.png", MIMETypes.png, "japan image".getBytes());
+    }
 
     @Test
     public void repository_can_read_from_a_directory() {
