@@ -104,4 +104,32 @@ public class ServerSettingsTest {
         assertEquals("/public", Settings.getDirectory());
         assertEquals(1234, Settings.getPort());
     }
+
+    @Test
+    public void settings_can_set_valid_port_and_directory() {
+        String[] args = {
+                "-p",
+                "1234",
+                "-d",
+                "/files"
+        };
+
+        assertEquals(true, Settings.validateSettings(args));
+        assertEquals("/files", Settings.getDirectory());
+        assertEquals(1234, Settings.getPort());
+    }
+
+    @Test
+    public void settings_can_set_valid_port_and_directory_reversed() {
+        String[] args = {
+                "-d",
+                "/files",
+                "-p",
+                "1111"
+        };
+
+        assertEquals(true, Settings.validateSettings(args));
+        assertEquals("/files", Settings.getDirectory());
+        assertEquals(1111, Settings.getPort());
+    }
 }
