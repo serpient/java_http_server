@@ -71,4 +71,37 @@ public class RequestTest {
     public void request_with_NO_body_parse_body() {
         assertEquals(null, h_request.getBody());
     }
+
+    @Test
+    public void request_can_parse_url_parameters() {
+        Request request = RequestCreator.from("GET /dog/1?name=Buddy&breed=Corgi");
+
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals("Buddy", parameters.get("name"));
+        assertEquals("Corgi", parameters.get("breed"));
+    }
+
+    @Test
+    public void request_can_parse_empty_parameters() {
+        Request request = RequestCreator.from("GET /dog/1");
+
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals(new HashMap<>(), request.getParameters());
+    }
+
+    @Test
+    public void request_can_parse_url_encoded_parameters() {
+        Request request = RequestCreator.from("GET /dog/1?message%3DHello%20G%C3%BCnter%26author%3D%40Mrs%20JK" +
+                "%20Rowling");
+
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals("Hello Günter", parameters.get("message"));
+        assertEquals("@Mrs JK Rowling", parameters.get("author"));
+    }
 }
