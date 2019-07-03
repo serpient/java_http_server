@@ -67,16 +67,16 @@ public class Response {
     }
 
     private void notFound() {
-        this.status = StatusCode.notFound;
+        setStatus(StatusCode.notFound);
     }
 
     private void methodNotAllowed() {
-        this.status = StatusCode.methodNotAllowed;
+        setStatus(StatusCode.methodNotAllowed);
         setHeader(Headers.allowedHeaders, router.createOptionsHeader(request.getRoute()));
     }
 
     private void noContent() {
-        this.status = StatusCode.noContent;
+        setStatus(StatusCode.noContent);
     }
 
     public void sendFile(String path) {
@@ -88,7 +88,7 @@ public class Response {
     }
 
     public void redirect(String redirectedRoute) {
-        status = StatusCode.moved;
+        setStatus(StatusCode.moved);
         setHeader(Headers.location, "http://127.0.0.1:5000" + redirectedRoute);
     }
 
@@ -98,18 +98,26 @@ public class Response {
         this.body = bodyContent;
     }
 
+    public void sendBody(String bodyContent, String contentType) {
+        sendBody(bodyContent.getBytes(), contentType);
+    }
+
     public void successfulPut() {
         this.status = StatusCode.created;
     }
 
     public void successfulPost(String resourceLocation) {
         setHeader(Headers.location, resourceLocation);
-        this.status = StatusCode.created;
+        setStatus(StatusCode.created);
     }
 
     public void head(byte[] bodyContent, String contentType) {
         setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
         setHeader(Headers.contentType, contentType);
+    }
+
+    public void head(String bodyContent, String contentType) {
+        head(bodyContent.getBytes(), contentType);
     }
 
     public void successfulDelete() {

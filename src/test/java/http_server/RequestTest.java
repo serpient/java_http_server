@@ -75,7 +75,6 @@ public class RequestTest {
     @Test
     public void request_can_parse_url_parameters() {
         Request request = RequestCreator.from("GET /dog/1?name=Buddy&breed=Corgi");
-
         HashMap<String, String> parameters = request.getParameters();
 
         assertEquals("/dog/1", request.getRoute());
@@ -87,8 +86,6 @@ public class RequestTest {
     public void request_can_parse_empty_parameters() {
         Request request = RequestCreator.from("GET /dog/1");
 
-        HashMap<String, String> parameters = request.getParameters();
-
         assertEquals("/dog/1", request.getRoute());
         assertEquals(new HashMap<>(), request.getParameters());
     }
@@ -97,7 +94,6 @@ public class RequestTest {
     public void request_can_parse_url_encoded_parameters() {
         Request request = RequestCreator.from("GET /dog/1?message%3DHello%20G%C3%BCnter%26author%3D%40Mrs%20JK" +
                 "%20Rowling");
-
         HashMap<String, String> parameters = request.getParameters();
 
         assertEquals("/dog/1", request.getRoute());

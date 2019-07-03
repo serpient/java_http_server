@@ -25,7 +25,6 @@ public class DirectoryPageCreatorTest {
     public void static_files_in_public_directory_are_rendered_as_a_HTML_page_with_contents_listed() {
         String path = "./public";
         List<String> directoryContents = repository.readDirectoryContents(path);
-        System.err.println(directoryContents);
         DirectoryPageCreator directoryPageCreator = new DirectoryPageCreator(directoryContents, "/public");
         String page = directoryPageCreator.generateHTML();
         String homeList = "<li class='bullets'><a href='/public/Home.html'>Home.html</a></li>\n";

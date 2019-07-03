@@ -51,7 +51,6 @@ public class FileRepository implements Repository {
             for (Path file: stream) {
                 if (file.toFile().isFile()) {
                     String name = file.toString();
-                    System.err.println(path);
                     fileList.add(name.substring(dirPath.endsWith("/") ? dirPath.length() : dirPath.length() + 1));
                 } else {
                     List<String> subContents = readDirectoryContents(file.toString(), dirPath);
@@ -88,7 +87,7 @@ public class FileRepository implements Repository {
         Charset charset = Charset.forName("US-ASCII");
         if (isRegularExecutableFile) {
             try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
-                String line = null;
+                String line;
                 while ((line = reader.readLine()) != null) {
                     fileContents += line;
                 }
@@ -147,7 +146,7 @@ public class FileRepository implements Repository {
 
         try {
             Files.delete(path);
-            System.err.println("DELETED");
+            System.err.println("Deleted " + path);
         } catch (DirectoryNotEmptyException x) {
             System.err.format("%s not empty%n", path);
         } catch (IOException x) {
