@@ -123,11 +123,12 @@ public class ServerTest {
 
     @Test
     public void redirected_route_is_responded_with_301_and_new_route() {
+        router.setPort(1234);
         String request = "GET /redirect HTTP/1.1";
         String response = runSessionAndRetrieveResponse(request);
 
         assertEquals("301", Parser.getStatusCode(response));
-        assertEquals("http://127.0.0.1:5000/simple_get", Parser.getHeaders(response).get("Location"));
+        assertEquals("http://127.0.0.1:1234/simple_get", Parser.getHeaders(response).get("Location"));
     }
 
     String directoryBody = "<!DOCTYPE html>\n" +
@@ -158,7 +159,18 @@ public class ServerTest {
     }
 
     @Test
+    public void navigating_to_base_route_redirects_to_static_directory() {
+        router.setPort(1234);
+        String request = "GET / HTTP/1.1";
+        String response = runSessionAndRetrieveResponse(request);
+
+        assertEquals("301", Parser.getStatusCode(response));
+        assertEquals("http://127.0.0.1:1234/public", Parser.getHeaders(response).get("Location"));
+    }
+
+    @Test
     public void navigating_to_base_path_redirects_to_static_directory() {
+        router.setPort(5000);
         String request = "GET / HTTP/1.1";
         String response = runSessionAndRetrieveResponse(request);
 

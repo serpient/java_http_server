@@ -89,8 +89,8 @@ public class Response {
     }
 
     public void redirect(String redirectedRoute) {
-        status = StatusCode.moved;
-        setHeader(Headers.location, "http://127.0.0.1:5000" + redirectedRoute);
+        setStatus(StatusCode.moved);
+        setHeader(Headers.location, "http://127.0.0.1:" + router.getPort() + redirectedRoute);
     }
 
     public void sendBody(byte[] bodyContent, String contentType) {

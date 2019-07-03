@@ -53,7 +53,7 @@ public class ServerSettingsTest {
         };
 
         assertEquals(false, Settings.validateSettings(args));
-        assertEquals("", Settings.getDirectory());
+        assertEquals("/public", Settings.getDirectory());
     }
 
     @Test
@@ -64,7 +64,7 @@ public class ServerSettingsTest {
         };
 
         assertEquals(false, Settings.validateSettings(args));
-        assertEquals("", Settings.getDirectory());
+        assertEquals("/public", Settings.getDirectory());
     }
 
 
@@ -76,7 +76,7 @@ public class ServerSettingsTest {
         };
 
         assertEquals(false, Settings.validateSettings(args));
-        assertEquals("", Settings.getDirectory());
+        assertEquals("/public", Settings.getDirectory());
         assertEquals(5000, Settings.getPort());
     }
 
@@ -88,7 +88,20 @@ public class ServerSettingsTest {
         };
 
         assertEquals(false, Settings.validateSettings(args));
-        assertEquals("", Settings.getDirectory());
+        assertEquals("/public", Settings.getDirectory());
         assertEquals(5000, Settings.getPort());
+    }
+
+    @Test
+    public void settings_can_throw_error_if_directory_is_missing_input() {
+        String[] args = {
+                "-p",
+                "1234",
+                "-d"
+        };
+
+        assertEquals(false, Settings.validateSettings(args));
+        assertEquals("/public", Settings.getDirectory());
+        assertEquals(1234, Settings.getPort());
     }
 }

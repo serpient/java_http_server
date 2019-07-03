@@ -48,7 +48,7 @@ public class Settings {
 
     private static void initializeSettings() {
         settings.put("port", "5000");
-        settings.put("directory", "");
+        settings.put("directory", "/public");
     }
 }
 

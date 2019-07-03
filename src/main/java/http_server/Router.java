@@ -23,6 +23,7 @@ public class Router {
     private static Path fullStaticDirectoryPath;
     private Repository repository;
     private static String dirPath;
+    private static int port;
 
     public Router() {
         this.routes = new HashMap<>();
@@ -34,6 +35,7 @@ public class Router {
         methods.add(Methods.options);
         methods.add(Methods.delete);
         repository = new FileRepository();
+        port = 5000;
         basePath = Paths.get(System.getProperty("user.dir"));
     }
 
@@ -42,6 +44,14 @@ public class Router {
         if (staticDirectoryRelativePath != "") {
             staticDirectory(staticDirectoryRelativePath);
         }
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public void setRepository(Repository repository) {
@@ -146,6 +156,9 @@ public class Router {
         List<String> directoryContents = repository.readDirectoryContents(fullStaticDirectoryPath.toString());
         createResourceRoutes(directoryContents, staticDirectoryRelativePath);
         createStaticDirectoryRoute(staticDirectoryRelativePath);
+        get("/", (Request request, Response response) -> {
+            response.redirect(dirPath);
+        });
     }
 
     private void createStaticDirectoryRoute(String staticDirectoryRelativePath) {

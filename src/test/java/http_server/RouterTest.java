@@ -70,8 +70,6 @@ public class RouterTest {
         router.get("/get_with_body", anonymousFn_True);
 
         collection.get("/get_with_body").get("GET").run(req, res);
-
-//        assertEquals(anonymousFn_True_Result, res.getBody());
     }
 
     @Test

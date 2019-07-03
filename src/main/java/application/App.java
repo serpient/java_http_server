@@ -21,12 +21,6 @@ public class App {
     private static Router createRouter(String directory) {
         Router app = new Router(directory);
 
-        app.staticDirectory("/images");
-
-        app.get("/", (Request request, Response response) -> {
-            response.redirect("/images");
-        });
-
         app.get("/simple_get", (Request request, Response response) -> {
         });
 
