@@ -241,7 +241,6 @@ public class ServerTest {
                 () -> {
                     String request = "GET /dog/1.html HTTP/1.1";
                     String response = runSessionAndRetrieveResponse(request);
-                    System.err.println(response);
 
                     assertEquals("200", Parser.getStatusCode(response));
                     assertEquals("text/html", Parser.getHeaders(response).get("Content-Type"));
@@ -361,7 +360,36 @@ public class ServerTest {
                     String response = runSessionAndRetrieveResponse(request);
 
                     assertEquals("404", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request = "GET /delete_me HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("404", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request = "GET /public/delete_me.txt HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("404", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request = "GET /public/delete_me HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("404", Parser.getStatusCode(response));
                 }
         );
+    }
+
+    @Test
+    public void server_can_handle_request_parameters() {
+        String route = "/multiple_parameters?message=Hello%20G%C3%BCnter&author=%40Mrs%20JK%20Rowling";
+        String request = "GET " + route + " HTTP/1.1";
+        String response = runSessionAndRetrieveResponse(request);
+
+        assertEquals("200", Parser.getStatusCode(response));
+        assertEquals(true, Parser.getBody(response).contains("author=@Mrs JK Rowling"));
+        assertEquals(true, Parser.getBody(response).contains("message=Hello Günter"));
     }
 }

@@ -1,18 +1,13 @@
 package http_server;
 
-import directory_page_creator.DirectoryPageCreator;
-import http_standards.MIMETypes;
 import http_standards.Methods;
 import repository.Repository;
 import repository.FileRepository;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -22,7 +17,7 @@ public class Router {
     private Path basePath;
     private static Path fullStaticDirectoryPath;
     private Repository repository;
-    private static String dirPath;
+    private static ResourceHandler resource;
 
     public Router() {
         this.routes = new HashMap<>();
@@ -54,10 +49,6 @@ public class Router {
 
     public static Path getFullStaticDirectoryPath() {
         return fullStaticDirectoryPath;
-    }
-
-    public static String dirPath() {
-        return dirPath;
     }
 
     public void basePath(Path path) {
@@ -133,57 +124,28 @@ public class Router {
     }
 
     public void staticDirectory(String staticDirectoryRelativePath) {
-        dirPath = staticDirectoryRelativePath;
         fullStaticDirectoryPath = Paths.get(basePath.toString(), staticDirectoryRelativePath);
-        List<String> directoryContents = repository.readDirectoryContents(fullStaticDirectoryPath.toString());
-        createResourceRoutes(directoryContents, staticDirectoryRelativePath);
-        createStaticDirectoryRoute(staticDirectoryRelativePath);
-    }
-
-    private void createStaticDirectoryRoute(String staticDirectoryRelativePath) {
-        get(staticDirectoryRelativePath, (Request request, Response response) -> {
-            List<String> directoryContents = repository.readDirectoryContents(fullStaticDirectoryPath.toString());
-            response.sendBody(new DirectoryPageCreator(directoryContents, staticDirectoryRelativePath).generateHTML().getBytes(), MIMETypes.html);
-        });
-    }
-
-    private void createResourceRoutes(List<String> directoryContents, String staticDirectoryRelativePath) {
-        for (int i = 0; i < directoryContents.size(); i++) {
-            String fileName = directoryContents.get(i);
-            String filePath = staticDirectoryRelativePath + "/" + fileName;
-
-            get(filePath, (Request request, Response response) -> {
-                response.sendFile("/" + fileName);
-            });
-        }
+        resource = new ResourceHandler(this, staticDirectoryRelativePath);
+        resource.createStaticDirectory(staticDirectoryRelativePath);
     }
 
     public String saveResource(String resourcePath, String fileType, byte[] content) {
-        repository.writeFile(getFullStaticDirectoryPath() + resourcePath, fileType, content);
-        createNewResourceRoutes(resourcePath, fileType);
+        resource.save(resourcePath + "." + fileType, fileType, content);
+        resource.paths(resourcePath, fileType).forEach(path -> {
+            get(path, (Request request, Response response) -> {
+                response.sendFile(resourcePath + "." + fileType);
+            });
+            delete(path, (Request request, Response response) -> {
+                resource.delete(resourcePath + "." + fileType, fileType);
+                resource.paths(resourcePath, fileType).forEach(pathToDelete -> deleteRoutes(pathToDelete));
+                response.successfulDelete();
+            });
+        });
         return resourcePath;
     }
 
-    private void createNewResourceRoutes(String resourcePath, String fileType) {
-        List<String> pathList = newResourcePaths(resourcePath, fileType);
-        for (int i = 0; i < pathList.size(); i++) {
-            get(pathList.get(i), (Request request, Response response) -> {
-                response.sendFile(resourcePath + "." + fileType);
-            });
-            delete(pathList.get(i), (Request request, Response response) -> {
-                deleteResource(resourcePath, fileType);
-                response.successfulDelete();
-            });
-        }
-    }
-
-    private List<String> newResourcePaths(String resourcePath, String fileType) {
-        return Arrays.asList(
-                resourcePath,
-                resourcePath + "." + fileType,
-                dirPath() + resourcePath,
-                dirPath() + resourcePath + "." + fileType
-        );
+    public String saveResource(String resourcePath, String fileType, String content) {
+        return saveResource(resourcePath, fileType, content.getBytes());
     }
 
     public String getUniqueRoute(String path) {
@@ -216,15 +178,11 @@ public class Router {
     }
 
     public void deleteResource(String resourcePath, String fileType) {
-        repository.deleteFile(getFullStaticDirectoryPath() + resourcePath + "." + fileType);
-        deleteResourceRoute(resourcePath);
-        deleteResourceRoute(resourcePath + "." + fileType);
-        deleteResourceRoute(dirPath() + resourcePath);
-        deleteResourceRoute(dirPath() + resourcePath + "." + fileType);
-        System.err.println(routes.keySet());
+        resource.delete(resourcePath, fileType);
+        resource.paths(resourcePath, fileType).forEach(path -> deleteRoutes(path));
     }
 
-    private void deleteResourceRoute(String resourcePath) {
+    public void deleteRoutes(String resourcePath) {
         routes.remove(resourcePath);
     }
 }

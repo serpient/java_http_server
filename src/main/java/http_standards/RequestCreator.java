@@ -8,7 +8,8 @@ public class RequestCreator {
                 Parser.getMethod(request),
                 Parser.getRoute(request),
                 Parser.getBody(request),
-                Parser.getHeaders(request)
+                Parser.getHeaders(request),
+                Parser.getParameters(request)
         );
     }
 }

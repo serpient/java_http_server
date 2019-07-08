@@ -71,4 +71,62 @@ public class RequestTest {
     public void request_with_NO_body_parse_body() {
         assertEquals(null, h_request.getBody());
     }
+
+    @Test
+    public void request_can_parse_url_parameters() {
+        Request request = RequestCreator.from("GET /dog/1?name=Buddy&breed=Corgi");
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals("Buddy", parameters.get("name"));
+        assertEquals("Corgi", parameters.get("breed"));
+    }
+
+    @Test
+    public void request_can_parse_empty_parameters() {
+        Request request = RequestCreator.from("GET /dog/1");
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals(new HashMap<>(), request.getParameters());
+    }
+
+    @Test
+    public void request_can_parse_url_encoded_parameters() {
+        Request request = RequestCreator.from("GET /dog/1?message=Hello%20G%C3%BCnter&author=%40Mrs%20JK%20Rowling");
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals("Hello Günter", parameters.get("message"));
+        assertEquals("@Mrs JK Rowling", parameters.get("author"));
+    }
+
+    @Test
+    public void request_can_parse_long_url_encoded_parameters() {
+        Request request = RequestCreator.from("GET /dog/1?variable_1=Operators%20%3C%2C%20%3E%2C%20%3D%2C%20!%3D%3B%20%2B%2C%20-%2C%20*%2C%20%26%2C%20%40%2C%20%23%2C%20%24%2C%20%5B%2C%20%5D%3A%20%22is%20that%20all%22%3F&variable_2=stuff");
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals("Operators <, >, =, !=; +, -, *, &, @, #, $, [, ]: \"is that all\"?", parameters.get("variable_1"));
+        assertEquals("stuff", parameters.get("variable_2"));
+    }
+
+    @Test
+    public void request_can_handle_incorrect_url_encoded_parameters() {
+        Request request = RequestCreator.from("GET /dog/1?message=Hello%20G%C3%BCnter&author=");
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals("Hello Günter", parameters.get("message"));
+        assertEquals("", parameters.get("author"));
+    }
+
+    @Test
+    public void request_can_handle_incorrect_url_encoded_parameters_2() {
+        Request request = RequestCreator.from("GET /dog/1?message=Hello%20G%C3%BCnter&");
+        HashMap<String, String> parameters = request.getParameters();
+
+        assertEquals("/dog/1", request.getRoute());
+        assertEquals("Hello Günter", parameters.get("message"));
+    }
 }
+

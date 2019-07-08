@@ -35,11 +35,11 @@ public class App {
         app.head("/get_with_body", (Request request, Response response) -> {
             String bodyContent = "Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n";
-            response.head(bodyContent.getBytes(), MIMETypes.plain);
+            response.head(bodyContent, MIMETypes.plain);
         });
 
         app.post("/echo_body", (Request request, Response response) -> {
-            response.sendBody(request.getBody().getBytes(), request.getContentFileType());
+            response.sendBody(request.getBody(), request.getContentFileType());
             response.setStatus(StatusCode.ok);
         });
 
@@ -62,13 +62,18 @@ public class App {
         app.post("/dog", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
             String resourceRoute = app.saveResource(uniqueRoute, request.getContentFileType(),
-                    request.getBody().getBytes());
+                    request.getBody());
             response.successfulPost(resourceRoute);
         });
 
         app.put("/cat/1", (Request request, Response response) -> {
-            app.saveResource(request.getRoute(), request.getContentFileType(), request.getBody().getBytes());
+            app.saveResource(request.getRoute(), request.getContentFileType(), request.getBody());
             response.successfulPut();
+        });
+
+        app.get("/multiple_parameters", (Request request, Response response) -> {
+            String body = "Parameters: \n" + request.getParameters().entrySet();
+            response.sendBody(body, MIMETypes.plain);
         });
 
         return app;

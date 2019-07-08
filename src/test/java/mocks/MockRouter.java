@@ -72,6 +72,11 @@ public class MockRouter {
             response.successfulPut();
         });
 
+        app.get("/multiple_parameters", (Request request, Response response) -> {
+            String body = "Parameters: \n" + request.getParameters().entrySet();
+            response.sendBody(body.getBytes(), MIMETypes.plain);
+        });
+
         return app;
     }
 }
