@@ -1,6 +1,7 @@
 package http_standards;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Methods {
@@ -15,5 +16,17 @@ public class Methods {
 
     public final static List<String> creationMethods() {
         return creationMethods;
+    }
+
+    public final static LinkedHashSet<String> allMethods() {
+        LinkedHashSet methods = new LinkedHashSet<>();
+        methods.add(Methods.get);
+        methods.add(Methods.head);
+        methods.add(Methods.post);
+        methods.add(Methods.put);
+        methods.add(Methods.options);
+        methods.add(Methods.delete);
+
+        return methods;
     }
 }

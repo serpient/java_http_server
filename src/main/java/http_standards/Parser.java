@@ -55,26 +55,32 @@ public class Parser {
     }
 
     public static HashMap<String, String> getParameters(String request) {
-        HashMap<String, String> parametersCollection = new HashMap<>();
         String routeLine = getFirstLine(request)[1];
-
         if (routeLine.contains("?")) {
-            int startOfParametersIndex = routeLine.indexOf("?");
-            String encodedParameters = routeLine.substring(startOfParametersIndex + 1);
-            try {
-                String[] parameterSets = encodedParameters.split("[&]");
-                for (int i = 0; i < parameterSets.length; i++) {
-                    String[] keyValuePair = parameterSets[i].split("=");
-                    String key = URLDecoder.decode(keyValuePair[0], "UTF-8");
-                    String value = keyValuePair.length > 1 ? URLDecoder.decode(keyValuePair[1], "UTF-8") : "";
-                    parametersCollection.put(key, value);
-                }
-            } catch (UnsupportedEncodingException e) {
-                System.err.println(e);
+            return decodeData(routeLine);
+        } else {
+            return new HashMap<>();
+        }
+    }
+
+    public static HashMap<String, String> decodeData(String data) {
+        HashMap<String, String> decodedCollection = new HashMap<>();
+
+        int startOfParametersIndex = data.indexOf("?");
+        String encodedParameters = data.substring(startOfParametersIndex + 1);
+        try {
+            String[] parameterSets = encodedParameters.split("[&]");
+            for (int i = 0; i < parameterSets.length; i++) {
+                String[] keyValuePair = parameterSets[i].split("=");
+                String key = URLDecoder.decode(keyValuePair[0], "UTF-8");
+                String value = keyValuePair.length > 1 ? URLDecoder.decode(keyValuePair[1], "UTF-8") : "";
+                decodedCollection.put(key, value);
             }
+        } catch (UnsupportedEncodingException e) {
+            System.err.println(e);
         }
 
-        return parametersCollection;
+        return decodedCollection;
     }
 
     private static String[] splitMessage(String request) {
