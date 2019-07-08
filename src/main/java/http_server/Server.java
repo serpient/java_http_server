@@ -13,6 +13,7 @@ public class Server {
         try {
             this.server = new ServerSocket(port);
             this.router = router;
+            router.setPort(port);
         } catch (IOException e) {
             System.err.println(e.toString());
         }

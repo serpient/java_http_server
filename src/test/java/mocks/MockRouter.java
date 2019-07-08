@@ -6,8 +6,6 @@ import http_server.Response;
 import http_server.Router;
 import repository.Repository;
 
-import java.nio.file.Paths;
-
 public class MockRouter {
     Repository repository;
 
@@ -21,8 +19,6 @@ public class MockRouter {
 
     private Router createRouter() {
         Router app = new Router();
-
-        app.basePath(Paths.get(System.getProperty("user.dir")));
 
         app.staticDirectory("/public");
 

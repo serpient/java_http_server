@@ -35,5 +35,14 @@ test {
     useJUnitPlatform()
 }
 
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'application.App'
+        )
+    }
+}
+
 // Define the main class for the application
 mainClassName = 'application.App'

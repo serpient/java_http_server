@@ -25,8 +25,21 @@ Within project folder, run `./gradlew test` to run the tests
 #### Option 1: Default port 5000
 Run `gradle run` to start the server
 
-#### Option 2: Custom post
-Run `gradle run --args=1111`. Replace '1111' with your own custom port
+#### Option 2: Custom port and directory
+```
+ gradle run --args="-p 3000 -d /test"
+```
+
+#### Option 3: Custom port and directory from jar
+```
+gradle build
+ java -jar build/libs/application.jar -p 2000 -d /files
+```
+
+### Arguments
+- `-p` for Port
+- `-d` for Directory path
+
 
 # Server and Application logic is separated
 Project's entry point is from application side now. An example application that define routes and start the http server:

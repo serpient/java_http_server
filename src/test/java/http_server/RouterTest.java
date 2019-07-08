@@ -2,17 +2,16 @@ package http_server;
 
 import http_standards.MIMETypes;
 import http_standards.Methods;
-import http_standards.Parser;
 import http_standards.RequestCreator;
 import http_standards.Stringer;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import mocks.MockRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RouterTest {
@@ -40,6 +39,7 @@ public class RouterTest {
     @BeforeEach
     public void initializeRouter() {
         router = new Router();
+        router.setRepository(new MockRepository("/public"));
         collection = router.getRouter();
     }
 
@@ -70,8 +70,6 @@ public class RouterTest {
         router.get("/get_with_body", anonymousFn_True);
 
         collection.get("/get_with_body").get("GET").run(req, res);
-
-//        assertEquals(anonymousFn_True_Result, res.getBody());
     }
 
     @Test
@@ -145,18 +143,9 @@ public class RouterTest {
 
     @Test
     public void Router_Can_Set_A_Public_Directory_Route() {
-        router.basePath(Paths.get(System.getProperty("user.dir")));
         router.staticDirectory("/public");
 
         assertEquals(true, collection.get("/public").containsKey("GET"));
-    }
-
-    @Test
-    public void Router_can_navigate_to_directory_contents_as_routes() {
-        router.basePath(Paths.get(System.getProperty("user.dir")));
-        router.staticDirectory("/public");
-
-        assertEquals(true, collection.get("/public/Home.html").containsKey("GET"));
     }
 
     @Test
@@ -205,5 +194,18 @@ public class RouterTest {
         assertEquals(false, router.getMethodCollection("/delete_me.txt").containsKey(Methods.get));
         assertEquals(false, router.getMethodCollection("/public/delete_me").containsKey(Methods.get));
         assertEquals(false, router.getMethodCollection("/public/delete_me.txt").containsKey(Methods.get));
+    }
+
+    @Test
+    public void router_can_be_created_with_different_directory_paths() {
+        router = new Router("/images");
+        router.setRepository(new MockRepository("/images"));
+        router.saveResource("/dog/1", "html", "DELETE ME".getBytes());
+        collection = router.getRouter();
+
+        assertEquals(true, collection.get("/images").containsKey("GET"));
+        assertEquals(false, collection.containsKey("/public"));
+        assertEquals(true, router.getMethodCollection("/dog/1").containsKey(Methods.get));
+        assertEquals(true, router.getMethodCollection("/images/dog/1").containsKey(Methods.get));
     }
 }

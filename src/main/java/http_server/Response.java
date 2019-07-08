@@ -80,7 +80,7 @@ public class Response {
     }
 
     public void sendFile(String path) {
-        String filePath = router.getFullStaticDirectoryPath() + path;
+        String filePath = router.getFullDirectoryPath() + path;
         byte[] file = router.getRepository().readFile(filePath);
         this.body = file;
         setHeader(Headers.contentType, router.getRepository().getFileType(filePath));
@@ -89,7 +89,7 @@ public class Response {
 
     public void redirect(String redirectedRoute) {
         setStatus(StatusCode.moved);
-        setHeader(Headers.location, "http://127.0.0.1:5000" + redirectedRoute);
+        setHeader(Headers.location, "http://127.0.0.1:" + router.getPort() + redirectedRoute);
     }
 
     public void sendBody(byte[] bodyContent, String contentType) {

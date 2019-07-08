@@ -15,8 +15,9 @@ public class Router {
     private HashMap<String, HashMap<String, Callback>> routes;
     private Set<String> methods;
     private Path basePath;
-    private static Path fullStaticDirectoryPath;
+    private static Path fullDirectoryPath;
     private Repository repository;
+    private static int port;
     private static ResourceHandler resource;
 
     public Router() {
@@ -29,6 +30,23 @@ public class Router {
         methods.add(Methods.options);
         methods.add(Methods.delete);
         repository = new FileRepository();
+        port = 5000;
+        basePath = Paths.get(System.getProperty("user.dir"));
+    }
+
+    public Router(String staticDirectoryRelativePath) {
+        this();
+        if (staticDirectoryRelativePath != "") {
+            staticDirectory(staticDirectoryRelativePath);
+        }
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public void setRepository(Repository repository) {
@@ -47,8 +65,8 @@ public class Router {
         return methods;
     }
 
-    public static Path getFullStaticDirectoryPath() {
-        return fullStaticDirectoryPath;
+    public static Path getFullDirectoryPath() {
+        return fullDirectoryPath;
     }
 
     public void basePath(Path path) {
@@ -123,10 +141,16 @@ public class Router {
         getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
     }
 
-    public void staticDirectory(String staticDirectoryRelativePath) {
-        fullStaticDirectoryPath = Paths.get(basePath.toString(), staticDirectoryRelativePath);
-        resource = new ResourceHandler(this, staticDirectoryRelativePath);
-        resource.createStaticDirectory(staticDirectoryRelativePath);
+    private String trimPath(String path) {
+        int trimFrom = path.lastIndexOf(".");
+        return path.substring(trimFrom + 1);
+    }
+
+    public void staticDirectory(String directoryPath) {
+        this.fullDirectoryPath = Paths.get(basePath.toString(), directoryPath);
+        String formattedDirectoryPath = directoryPath.startsWith(".") || directoryPath.startsWith("/") ? trimPath(directoryPath) : directoryPath;
+        resource = new ResourceHandler(this, formattedDirectoryPath);
+        resource.createStaticDirectory(formattedDirectoryPath);
     }
 
     public String saveResource(String resourcePath, String fileType, byte[] content) {
