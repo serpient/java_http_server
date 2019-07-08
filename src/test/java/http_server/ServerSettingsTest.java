@@ -1,6 +1,10 @@
 package http_server;
 import org.junit.jupiter.api.Test;
+
+import javax.lang.model.type.ErrorType;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ServerSettingsTest {
     @Test
@@ -14,24 +18,22 @@ public class ServerSettingsTest {
     }
 
     @Test
-    public void settings_can_set_default_port_if_missing_from_settings() {
+    public void settings_errors_if_default_port_if_missing_from_settings() {
         String[] args = {
                 "-p",
         };
 
-        assertEquals(false, Settings.validateSettings(args));
-        assertEquals(5000, Settings.getPort());
+        assertThrows(Error.class, () -> Settings.validateSettings(args));
     }
 
     @Test
-    public void settings_can_set_default_port_if_args_is_not_a_number() {
+    public void settings_errors_if_default_port_if_args_is_not_a_number() {
         String[] args = {
                 "-p",
                 "/public"
         };
 
-        assertEquals(false, Settings.validateSettings(args));
-        assertEquals(5000, Settings.getPort());
+        assertThrows(Error.class, () -> Settings.validateSettings(args));
     }
 
     @Test
@@ -52,21 +54,8 @@ public class ServerSettingsTest {
                 "-d"
         };
 
-        assertEquals(false, Settings.validateSettings(args));
-        assertEquals("/public", Settings.getDirectory());
+        assertThrows(Error.class, () -> Settings.validateSettings(args));
     }
-
-    @Test
-    public void settings_can_throw_error_if_directory_is_not_real_from_terminal() {
-        String[] args = {
-                "-d",
-                "public"
-        };
-
-        assertEquals(false, Settings.validateSettings(args));
-        assertEquals("/public", Settings.getDirectory());
-    }
-
 
     @Test
     public void settings_can_throw_error_if_port_and_directory_is_missing_input() {
@@ -75,9 +64,7 @@ public class ServerSettingsTest {
                 "-p"
         };
 
-        assertEquals(false, Settings.validateSettings(args));
-        assertEquals("/public", Settings.getDirectory());
-        assertEquals(5000, Settings.getPort());
+        assertThrows(Error.class, () -> Settings.validateSettings(args));
     }
 
     @Test
@@ -87,9 +74,7 @@ public class ServerSettingsTest {
                 "-d"
         };
 
-        assertEquals(false, Settings.validateSettings(args));
-        assertEquals("/public", Settings.getDirectory());
-        assertEquals(5000, Settings.getPort());
+        assertThrows(Error.class, () -> Settings.validateSettings(args));
     }
 
     @Test
@@ -100,9 +85,7 @@ public class ServerSettingsTest {
                 "-d"
         };
 
-        assertEquals(false, Settings.validateSettings(args));
-        assertEquals("/public", Settings.getDirectory());
-        assertEquals(1234, Settings.getPort());
+        assertThrows(Error.class, () -> Settings.validateSettings(args));
     }
 
     @Test
@@ -111,11 +94,11 @@ public class ServerSettingsTest {
                 "-p",
                 "1234",
                 "-d",
-                "/files"
+                "/out"
         };
 
         assertEquals(true, Settings.validateSettings(args));
-        assertEquals("/files", Settings.getDirectory());
+        assertEquals("/out", Settings.getDirectory());
         assertEquals(1234, Settings.getPort());
     }
 
@@ -123,13 +106,13 @@ public class ServerSettingsTest {
     public void settings_can_set_valid_port_and_directory_reversed() {
         String[] args = {
                 "-d",
-                "/files",
+                "/bin",
                 "-p",
                 "1111"
         };
 
         assertEquals(true, Settings.validateSettings(args));
-        assertEquals("/files", Settings.getDirectory());
+        assertEquals("/bin", Settings.getDirectory());
         assertEquals(1111, Settings.getPort());
     }
 }

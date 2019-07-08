@@ -1,5 +1,7 @@
 package http_server;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class Settings {
@@ -32,9 +34,7 @@ public class Settings {
 
                 return false;
             } else if ((args[i].equals("-p") || args[i].equals("-d")) && i + 1 >= args.length) {
-                System.err.println("Missing settings input for ( " + args[i] + " ).\nServer will start with default " +
-                        "settings.");
-                return false;
+                throw new Error("Missing settings input for ( " + args[i] + " ).\nSystem exiting.");
             }
         }
         return true;
@@ -53,9 +53,7 @@ public class Settings {
             Integer.parseInt(input);
             return true;
         } catch (NumberFormatException e) {
-            System.err.println(input + " is not a valid port input. Please use a numeric port input.");
-            System.err.println(e);
-            return false;
+            throw new Error(input + " is not a valid port input. Please use a numeric port input.");
         }
     }
 
@@ -63,11 +61,13 @@ public class Settings {
         if (!setting.equals("-d")) {
             return false;
         }
-        if (input.startsWith("/")) {
+
+        boolean directoryExists = Files.exists(Paths.get(System.getProperty("user.dir"), input));
+
+        if (directoryExists) {
             return true;
         } else {
-            System.err.println("'" + input + "' is not a valid directory path.");
-            return false;
+            throw new Error("'" + input + "' is not a valid directory path.");
         }
     }
 }

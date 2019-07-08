@@ -16,6 +16,7 @@ public class App {
         Router app = createRouter(directory);
         Server server = new Server(port, app);
         server.start();
+
     }
 
     private static Router createRouter(String directory) {
