@@ -384,7 +384,7 @@ public class ServerTest {
 
     @Test
     public void server_can_handle_request_parameters() {
-        String route = "/multiple_parameters?message%3DHello%20G%C3%BCnter%26author%3D%40Mrs%20JK%20Rowling";
+        String route = "/multiple_parameters?message=Hello%20G%C3%BCnter&author=%40Mrs%20JK%20Rowling";
         String request = "GET " + route + " HTTP/1.1";
         String response = runSessionAndRetrieveResponse(request);
 

@@ -62,11 +62,12 @@ public class Parser {
             int startOfParametersIndex = routeLine.indexOf("?");
             String encodedParameters = routeLine.substring(startOfParametersIndex + 1);
             try {
-                String decodedParameters = URLDecoder.decode(encodedParameters, "UTF-8");
-                String[] parameterSets = decodedParameters.split("[&]");
+                String[] parameterSets = encodedParameters.split("[&]");
                 for (int i = 0; i < parameterSets.length; i++) {
                     String[] keyValuePair = parameterSets[i].split("=");
-                    parametersCollection.put(keyValuePair[0], keyValuePair[1]);
+                    String key = URLDecoder.decode(keyValuePair[0], "UTF-8");
+                    String value = keyValuePair.length > 1 ? URLDecoder.decode(keyValuePair[1], "UTF-8") : "";
+                    parametersCollection.put(key, value);
                 }
             } catch (UnsupportedEncodingException e) {
                 System.err.println(e);
