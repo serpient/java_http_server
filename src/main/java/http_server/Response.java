@@ -81,7 +81,7 @@ public class Response {
     }
 
     public void sendFile(String path) {
-        String filePath = router.getFullStaticDirectoryPath() + path;
+        String filePath = router.getFullDirectoryPath() + path;
         byte[] file = router.getRepository().readFile(filePath);
         this.body = file;
         setHeader(Headers.contentType, router.getRepository().getFileType(filePath));
