@@ -1,5 +1,7 @@
 package http_standards;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 
 public class Parser {
@@ -40,11 +42,39 @@ public class Parser {
     }
 
     public static String getRoute(String request) {
-        return getFirstLine(request)[1];
+        String routeLine =  getFirstLine(request)[1];
+        if (routeLine.contains("?")) {
+            int paramIndex = routeLine.indexOf("?");
+            return routeLine.substring(0, paramIndex);
+        }
+        return routeLine;
     }
 
     public static String getStatusCode(String request) {
         return Parser.getFirstLine(request)[1];
+    }
+
+    public static HashMap<String, String> getParameters(String request) {
+        HashMap<String, String> parametersCollection = new HashMap<>();
+        String routeLine = getFirstLine(request)[1];
+
+        if (routeLine.contains("?")) {
+            int startOfParametersIndex = routeLine.indexOf("?");
+            String encodedParameters = routeLine.substring(startOfParametersIndex + 1);
+            try {
+                String[] parameterSets = encodedParameters.split("[&]");
+                for (int i = 0; i < parameterSets.length; i++) {
+                    String[] keyValuePair = parameterSets[i].split("=");
+                    String key = URLDecoder.decode(keyValuePair[0], "UTF-8");
+                    String value = keyValuePair.length > 1 ? URLDecoder.decode(keyValuePair[1], "UTF-8") : "";
+                    parametersCollection.put(key, value);
+                }
+            } catch (UnsupportedEncodingException e) {
+                System.err.println(e);
+            }
+        }
+
+        return parametersCollection;
     }
 
     private static String[] splitMessage(String request) {

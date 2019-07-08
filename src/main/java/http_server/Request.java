@@ -10,12 +10,16 @@ public class Request {
     private String route;
     private String body;
     private HashMap<String, String> headers;
+    private HashMap<String, String> parameters;
 
-    public Request(String method, String route, String body, HashMap<String, String> headers) {
+    public Request(String method, String route, String body, HashMap<String, String> headers,
+                   HashMap<String, String> parameters) {
         this.method = method;
         this.route = route;
         this.body = body;
         this.headers = headers;
+        this.parameters = parameters;
+
     }
 
     public String getMethod() {
@@ -32,6 +36,10 @@ public class Request {
 
     public HashMap<String, String> getHeaders() {
         return headers;
+    }
+
+    public HashMap<String, String> getParameters() {
+        return parameters;
     }
 
     public String getContentFileType() {

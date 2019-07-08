@@ -142,12 +142,4 @@ public class FileRepositoryTest {
         assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("test/2.html"));
         assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("test/1.txt"));
     }
-
-    @Test
-    public void directories_outside_of_working_directory_can_be_handled() {
-        String path = "../test";
-        String basePath = path;
-
-        assertEquals(true, fileHandler.readDirectoryContents(basePath).contains("image.png"));
-    }
 }

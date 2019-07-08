@@ -94,11 +94,11 @@ public class ServerSettingsTest {
                 "-p",
                 "1234",
                 "-d",
-                "/out"
+                "/public"
         };
 
         assertEquals(true, Settings.validateSettings(args));
-        assertEquals("/out", Settings.getDirectory());
+        assertEquals("/public", Settings.getDirectory());
         assertEquals(1234, Settings.getPort());
     }
 
@@ -106,13 +106,13 @@ public class ServerSettingsTest {
     public void settings_can_set_valid_port_and_directory_reversed() {
         String[] args = {
                 "-d",
-                "/bin",
+                "/public",
                 "-p",
                 "1111"
         };
 
         assertEquals(true, Settings.validateSettings(args));
-        assertEquals("/bin", Settings.getDirectory());
+        assertEquals("/public", Settings.getDirectory());
         assertEquals(1111, Settings.getPort());
     }
 }

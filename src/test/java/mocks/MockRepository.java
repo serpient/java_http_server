@@ -41,7 +41,6 @@ public class MockRepository implements Repository  {
         memoryRepository.put(intendedFilePath, new MockFile(fileName, validatedFileType, fileContents));
     }
 
-
     public void deleteFile(String filePath) {
         memoryRepository.remove(validatedPath(filePath));
     }
