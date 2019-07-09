@@ -26,7 +26,7 @@ public class App {
 
 
         // creating routes
-        app.get("/dog", (Request request, Response response) -> {
+        app.post("/dog", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
             String resourceRoute = app.saveResource(
                                         uniqueRoute, 
@@ -72,17 +72,24 @@ Users can define a route and a callback that let's them customize the final resp
 | getContentFileType() 	| String                  	| File Type of Request body content, if any 	|
 
 ### Response Methods
-| Method                                           	| Returns   	| Description                                                                      	|
-|--------------------------------------------------	|---------------	|----------------------------------------------------------------------------------	|
-| setStatus(String status)                         	| void          	| Sets the Response status                                                         	|
-| getStatus()                                      	| String        	| Returns Response status                                                          	|
-| setHeader(String headerName, String headerValue) 	| void          	| Sets a Response header                                                           	|
-| getHeaders()                                     	| LinkedHashMap 	| Returns a hash map of Response headers                                           	|
-| getBody()                                        	| byte[]        	| Returns the Response body                                                        	|
-| sendFile(String filePath)                        	| void          	| Given a valid file path, Response sets the file, content-type and content-length 	|
-| sendBody(byte[] bodyContent, String contentType) 	| void          	| Response sets the body content, content-type and content-length                  	|
-| sendBody(String bodyContent, String contentType) 	| void          	| Response sets the body content, content-type and content-length                  	|
-| redirect(String redirectedRoute)                 	| void          	| Response sets the status and headers needed to handle a redirected route         	|
+
+| Method                                           | Returns       | Description                                                                      |
+|--------------------------------------------------|---------------|----------------------------------------------------------------------------------|
+| setStatus(String status)                         | void          | Sets the Response status                                                         |
+| getStatus()                                      | String        | Returns Response status                                                          |
+| setHeader(String headerName, String headerValue) | void          | Sets a Response header                                                           |
+| getHeaders()                                     | LinkedHashMap | Returns a hash map of Response headers                                           |
+| getBody()                                        | byte[]        | Returns the Response body                                                        |
+| setFile(String filePath)                         | void          | Given a valid file path, Response sets the file, content-type and content-length |
+| setBody(byte[] bodyContent, String contentType)  | void          | Response sets the body content, content-type and content-length                  |
+| setBody(String bodyContent, String contentType)  | void          | Response sets the body content, content-type and content-length                  |
+| redirect(String redirectedRoute)                 | void          | Response sets the status and headers needed to handle a redirected route         |
+| forPut()                                         | void          | Sets a response for a PUT request                                                |
+| forPost(String newResourceLocation)              | void          | Sets a response for a POST request                                               |
+| forHead(byte[] bodyContent, String contentType)  | void          | Sets a response for a HEAD request                                               |
+| forHead(String bodyContent, String contentType)  | void          | Sets a response for a HEAD request                                               |
+| forDelete()                                      | void          | Sets a response for a HEAD request                                               |
+| forOptions(String allowedHeaders)                | void          | Sets a response for a OPTIONS request                                            |
 
 # HTTP Server Local Development Setup
 ### 1. Install Java

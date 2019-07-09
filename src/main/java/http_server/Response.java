@@ -24,13 +24,13 @@ public class Response {
 
     public byte[] create() {
         if (requestIsValid()) {
-            router.fillResponseForRequest(request, this);
+            router.fillResponse(request, this);
         }
 
         return getBytes();
     }
 
-    public boolean requestIsValid() {
+    private boolean requestIsValid() {
         if (router.routeInvalid(request.getRoute())) {
             notFound();
             return false;
@@ -49,23 +49,6 @@ public class Response {
         return true;
     }
 
-    public byte[] getBytes() {
-        initDefaultHeaders();
-        return ResponseByteAssembler.generateBytes(status, headers, body);
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public byte[] getBody() {
-        return body;
-    }
-
-    public LinkedHashMap<String, String> getHeaders() {
-        return headers;
-    }
-
     private void notFound() {
         setStatus(StatusCode.notFound);
     }
@@ -79,53 +62,9 @@ public class Response {
         setStatus(StatusCode.noContent);
     }
 
-    public void sendFile(String path) {
-        String filePath = router.getFullDirectoryPath() + path;
-        byte[] file = router.getRepository().readFile(filePath);
-        this.body = file;
-        setHeader(Headers.contentType, router.getRepository().getFileType(filePath));
-        setHeader(Headers.contentLength, file.length + "");
-    }
-
-    public void redirect(String redirectedRoute) {
-        setStatus(StatusCode.moved);
-        setHeader(Headers.location, "http://127.0.0.1:" + router.getPort() + redirectedRoute);
-    }
-
-    public void sendBody(byte[] bodyContent, String contentType) {
-        setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
-        setHeader(Headers.contentType, contentType);
-        this.body = bodyContent;
-    }
-
-    public void sendBody(String bodyContent, String contentType) {
-        sendBody(bodyContent.getBytes(), contentType);
-    }
-
-    public void successfulPut() {
-        this.status = StatusCode.created;
-    }
-
-    public void successfulPost(String resourceLocation) {
-        setHeader(Headers.location, resourceLocation);
-        setStatus(StatusCode.created);
-    }
-
-    public void head(byte[] bodyContent, String contentType) {
-        setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
-        setHeader(Headers.contentType, contentType);
-    }
-
-    public void head(String bodyContent, String contentType) {
-        head(bodyContent.getBytes(), contentType);
-    }
-
-    public void successfulDelete() {
-        this.status = StatusCode.noContent;
-    }
-
-    public void options(String allowedHeaders) {
-        setHeader(Headers.allowedHeaders, allowedHeaders);
+    private byte[] getBytes() {
+        initDefaultHeaders();
+        return ResponseByteAssembler.generateBytes(status, headers, body);
     }
 
     private void initDefaultHeaders() {
@@ -137,11 +76,78 @@ public class Response {
         setHeader(Headers.server, "JavaServer/0.1");
     }
 
-    public void setHeader(String headerName, String headerValue) {
-        headers.put(headerName, headerValue);
+    public String getStatus() {
+        return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LinkedHashMap<String, String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeader(String headerName, String headerValue) {
+        headers.put(headerName, headerValue);
+    }
+
+    public byte[] getBody() {
+        return body;
+    }
+
+    public void redirect(String redirectedRoute) {
+        setStatus(StatusCode.moved);
+        setHeader(Headers.location, "http://127.0.0.1:" + router.getPort() + redirectedRoute);
+    }
+
+    public void setFile(String path) {
+        String filePath = router.getFullDirectoryPath() + path;
+        byte[] file = router.getRepository().readFile(filePath);
+        this.body = file;
+        setHeader(Headers.contentType, router.getRepository().getFileType(filePath));
+        setHeader(Headers.contentLength, file.length + "");
+    }
+
+    public void setBody(byte[] bodyContent, String contentType) {
+        setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
+        setHeader(Headers.contentType, contentType);
+        this.body = bodyContent;
+    }
+
+    public void setBody(String bodyContent, String contentType) {
+        setBody(bodyContent.getBytes(), contentType);
+    }
+
+    public void forPut() {
+        this.status = StatusCode.created;
+    }
+
+    public void forPost(String resourceLocation) {
+        setHeader(Headers.location, resourceLocation);
+        setStatus(StatusCode.created);
+    }
+
+    public void forPost(String resourceLocation, String content, String contentType) {
+        setHeader(Headers.location, resourceLocation);
+        setStatus(StatusCode.created);
+        setBody(content, contentType);
+    }
+
+    public void forHead(byte[] bodyContent, String contentType) {
+        setHeader(Headers.contentLength, Integer.toString(bodyContent.length));
+        setHeader(Headers.contentType, contentType);
+    }
+
+    public void forHead(String bodyContent, String contentType) {
+        forHead(bodyContent.getBytes(), contentType);
+    }
+
+    public void forDelete() {
+        this.status = StatusCode.noContent;
+    }
+
+    public void forOptions(String allowedHeaders) {
+        setHeader(Headers.allowedHeaders, allowedHeaders);
     }
 }

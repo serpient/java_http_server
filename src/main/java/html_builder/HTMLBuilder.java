@@ -26,11 +26,11 @@ public class HTMLBuilder {
     private String headHTML() {
         return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
-                "<head>\n" +
+                "<forHead>\n" +
                 "<meta charset=\"UTF-8\">\n" +
                 "<title>Home Page</title>\n" +
                 headerHTML +
-                "</head>\n";
+                "</forHead>\n";
     }
 
     private String starterBody() {

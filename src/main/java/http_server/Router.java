@@ -101,7 +101,7 @@ public class Router {
     private void setOptionsMethod(HashMap<String, Callback> methodCollection) {
         if (!methodCollection.containsKey(Methods.options)) {
             methodCollection.put(Methods.options, (Request request, Response response) -> {
-                response.options(createOptionsHeader(request.getRoute()));
+                response.forOptions(createOptionsHeader(request.getRoute()));
             });
         }
     }
@@ -129,7 +129,7 @@ public class Router {
         return routes.get(route) == null ? new HashMap<>() : routes.get(route);
     }
 
-    public void fillResponseForRequest(Request request, Response response) {
+    public void fillResponse(Request request, Response response) {
         getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
     }
 
@@ -146,19 +146,28 @@ public class Router {
     public void staticDirectory(String directoryPath) {
         this.fullDirectoryPath = Paths.get(basePath.toString(), directoryPath);
         String formattedDirectoryPath = trimPath(directoryPath);
-        resource = new ResourceHandler(this, formattedDirectoryPath);
+        this.resource = new ResourceHandler(this, formattedDirectoryPath);
         resource.createDirectory(formattedDirectoryPath);
+    }
+
+    public void deleteResource(String resourcePath, String fileType) {
+        resource.delete(resourcePath + "." + fileType);
+        resource.paths(resourcePath, fileType).forEach(pathToDelete -> deleteRoutes(pathToDelete));
+    }
+
+    private void deleteRoutes(String resourcePath) {
+        routes.remove(resourcePath);
     }
 
     public String saveResource(String resourcePath, String fileType, byte[] content) {
         resource.save(resourcePath, fileType, content);
         resource.paths(resourcePath, fileType).forEach(path -> {
             get(path, (Request request, Response response) -> {
-                response.sendFile(resourcePath + "." + fileType);
+                response.setFile(resourcePath + "." + fileType);
             });
             delete(path, (Request request, Response response) -> {
                 deleteResource(resourcePath, fileType);
-                response.successfulDelete();
+                response.forDelete();
             });
         });
         return resourcePath;
@@ -195,14 +204,5 @@ public class Router {
                     return Integer.parseInt(s.substring(idx + 1));
                 })
                 .max(Comparator.comparing(Integer::valueOf)).get();
-    }
-
-    public void deleteResource(String resourcePath, String fileType) {
-        resource.delete(resourcePath + "." + fileType, fileType);
-        resource.paths(resourcePath, fileType).forEach(pathToDelete -> deleteRoutes(pathToDelete));
-    }
-
-    public void deleteRoutes(String resourcePath) {
-        routes.remove(resourcePath);
     }
 }

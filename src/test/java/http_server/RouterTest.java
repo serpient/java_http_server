@@ -28,12 +28,12 @@ public class RouterTest {
 
     String anonymousFn_True_Result = "true";
     Callback anonymousFn_True = (Request req, Response res) -> {
-        res.sendBody(anonymousFn_True_Result.getBytes(), MIMETypes.plain);
+        res.setBody(anonymousFn_True_Result.getBytes(), MIMETypes.plain);
     };
 
     String anonymousFn_False_Result = "false";
     Callback anonymousFn_False = (Request req, Response res) -> {
-        res.sendBody(anonymousFn_True_Result.getBytes(), MIMETypes.plain);
+        res.setBody(anonymousFn_False_Result.getBytes(), MIMETypes.plain);
     };
 
     @BeforeEach
@@ -151,11 +151,11 @@ public class RouterTest {
     @Test
     public void Router_can_find_next_next_largest_id_for_a_parent_route() {
         router.get("/dog/1", (Request request, Response response) -> {
-            response.sendFile(request.getRoute());
+            response.setFile(request.getRoute());
         });
 
         router.get("/dog/3", (Request request, Response response) -> {
-            response.sendFile(request.getRoute());
+            response.setFile(request.getRoute());
         });
 
         router.post("/dog/5", (Request request, Response response) -> {
@@ -187,7 +187,6 @@ public class RouterTest {
         router.basePath(Paths.get(System.getProperty("user.dir")));
         router.staticDirectory("/public");
         router.saveResource("/delete_me", "txt", "DELETE ME".getBytes());
-
         router.deleteResource("/delete_me", "txt");
 
         assertEquals(false, router.getMethodCollection("/delete_me").containsKey(Methods.get));

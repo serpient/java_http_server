@@ -38,17 +38,17 @@ public class MockRouter {
         app.head("/get_with_body", (Request request, Response response) -> {
             String bodyContent = "Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n";
-            response.head(bodyContent.getBytes(), MIMETypes.plain);
+            response.forHead(bodyContent.getBytes(), MIMETypes.plain);
         });
 
         app.get("/harry_potter", (Request request, Response response) -> {
             String bodyContent = "Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n";
-            response.sendBody(bodyContent.getBytes(), MIMETypes.plain);
+            response.setBody(bodyContent.getBytes(), MIMETypes.plain);
         });
 
         app.post("/echo_body", (Request request, Response response) -> {
-            response.successfulPost(request.getRoute());
+            response.forPost(request.getRoute());
         });
 
         app.get("/method_options", (Request request, Response response) -> {});
@@ -63,17 +63,17 @@ public class MockRouter {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
             String resourceRoute = app.saveResource(uniqueRoute, request.getContentFileType(),
                     request.getBody().getBytes());
-            response.successfulPost(resourceRoute);
+            response.forPost(resourceRoute);
         });
 
         app.put("/cat/1", (Request request, Response response) -> {
             app.saveResource(request.getRoute(), request.getContentFileType(), request.getBody().getBytes());
-            response.successfulPut();
+            response.forPut();
         });
 
         app.get("/multiple_parameters", (Request request, Response response) -> {
             String body = "Parameters: \n" + request.getParameters().entrySet();
-            response.sendBody(body.getBytes(), MIMETypes.plain);
+            response.setBody(body.getBytes(), MIMETypes.plain);
         });
 
         app.get("/form", (Request request, Response response) -> {
@@ -89,16 +89,16 @@ public class MockRouter {
                     "  <br><br>\n" +
                     "  <input type=\"submit\" value=\"Submit\">\n" +
                     "</form> ");
-            response.sendBody(htmlBuilder.generate().getBytes(), MIMETypes.html);
+            response.setBody(htmlBuilder.generate().getBytes(), MIMETypes.html);
         });
 
         app.get("/form_action", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
             String resourceRoute = app.saveResource(uniqueRoute, MIMETypes.getFileType(MIMETypes.plain),
                     (request.getParameters().entrySet() + "").getBytes());
-            response.successfulPost(resourceRoute);
+            response.forPost(resourceRoute);
             String body = "Parameters: \n" + request.getParameters().entrySet();
-            response.sendBody(body.getBytes(), MIMETypes.plain);
+            response.setBody(body.getBytes(), MIMETypes.plain);
         });
 
         app.get("/post_form", (Request request, Response response) -> {
@@ -114,7 +114,7 @@ public class MockRouter {
                     "  <br><br>\n" +
                     "  <input type=\"submit\" value=\"Submit\">\n" +
                     "</form> ");
-            response.sendBody(htmlBuilder.generate().getBytes(), MIMETypes.html);
+            response.setBody(htmlBuilder.generate().getBytes(), MIMETypes.html);
         });
 
         app.post("/post_form", (Request request, Response response) -> {
@@ -126,8 +126,8 @@ public class MockRouter {
                 content = request.getBody();
             }
             String resourceRoute = app.saveResource(uniqueRoute, "txt", content);
-            response.successfulPost(resourceRoute);
-            response.sendBody("Parameters: \n" + content, MIMETypes.plain);
+            response.forPost(resourceRoute);
+            response.setBody("Parameters: \n" + content, MIMETypes.plain);
         });
 
         return app;
