@@ -1,6 +1,9 @@
 package application;
+import html_builder.HTMLBuilder;
 import http_server.Settings;
+import http_standards.Headers;
 import http_standards.MIMETypes;
+import http_standards.Parser;
 import http_standards.StatusCode;
 import http_server.Request;
 import http_server.Response;
@@ -16,7 +19,6 @@ public class App {
         Router app = createRouter(directory);
         Server server = new Server(port, app);
         server.start();
-
     }
 
     private static Router createRouter(String directory) {
@@ -31,11 +33,11 @@ public class App {
         app.head("/get_with_body", (Request request, Response response) -> {
             String bodyContent = "Here are all my favorite movies:\n" + "- Harry " +
                     "Potter\n";
-            response.head(bodyContent, MIMETypes.plain);
+            response.forHead(bodyContent, MIMETypes.plain);
         });
 
         app.post("/echo_body", (Request request, Response response) -> {
-            response.sendBody(request.getBody(), request.getContentFileType());
+            response.setBody(request.getBody(), request.getContentFileType());
             response.setStatus(StatusCode.ok);
         });
 
@@ -65,18 +67,72 @@ public class App {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
             String resourceRoute = app.saveResource(uniqueRoute, request.getContentFileType(),
                     request.getBody());
-            response.successfulPost(resourceRoute);
+            response.forPost(resourceRoute);
         });
 
         app.put("/cat/1", (Request request, Response response) -> {
             app.saveResource(request.getRoute(), request.getContentFileType(), request.getBody());
-            response.successfulPut();
+            response.forPut();
         });
 
         app.get("/multiple_parameters", (Request request, Response response) -> {
             String body = "Parameters: \n" + request.getParameters().entrySet();
-            response.sendBody(body, MIMETypes.plain);
+            response.setBody(body, MIMETypes.plain);
         });
+
+        app.get("/form", (Request request, Response response) -> {
+            HTMLBuilder htmlBuilder = new HTMLBuilder();
+            htmlBuilder.append("<h2>Registration</h2>\n" +
+                    "\n" +
+                    "<form method=\"get\" action=\"/form_action\">\n" +
+                    "  First name:<br>\n" +
+                    "  <input type=\"text\" name=\"firstname\">\n" +
+                    "  <br>\n" +
+                    "  Last name:<br>\n" +
+                    "  <input type=\"text\" name=\"lastname\">\n" +
+                    "  <br><br>\n" +
+                    "  <input type=\"submit\" value=\"Submit\">\n" +
+                    "</form> ");
+            response.setBody(htmlBuilder.generate().getBytes(), MIMETypes.html);
+        });
+
+        app.get("/form_action", (Request request, Response response) -> {
+            String uniqueRoute = app.getUniqueRoute(request.getRoute());
+            String resourceRoute = app.saveResource(uniqueRoute, MIMETypes.getFileType(MIMETypes.plain),
+                    (request.getParameters().entrySet() + "").getBytes());
+            response.forPost(resourceRoute);
+            String body = "Parameters: \n" + request.getParameters().entrySet();
+            response.setBody(body.getBytes(), MIMETypes.plain);
+        });
+
+        app.get("/post_form", (Request request, Response response) -> {
+            HTMLBuilder htmlBuilder = new HTMLBuilder();
+            htmlBuilder.append("<h2>Registration</h2>\n" +
+                    "\n" +
+                    "<form enctype=\"application/x-www-form-urlencoded\" method=\"post\" action=\"/post_form\">\n" +
+                    "  First name:<br>\n" +
+                    "  <input type=\"text\" name=\"firstname\">\n" +
+                    "  <br>\n" +
+                    "  Last name:<br>\n" +
+                    "  <input type=\"text\" name=\"lastname\">\n" +
+                    "  <br><br>\n" +
+                    "  <input type=\"submit\" value=\"Submit\">\n" +
+                    "</form> ");
+            response.setBody(htmlBuilder.generate().getBytes(), MIMETypes.html);
+        });
+
+        app.post("/post_form", (Request request, Response response) -> {
+            String uniqueRoute = app.getUniqueRoute(request.getRoute());
+            String content;
+            if (request.getHeaders().get(Headers.contentType).equals(MIMETypes.formUrlEncoded)) {
+                content = Parser.decodeData(request.getBody()).entrySet() + "";
+            } else {
+                content = request.getBody();
+            }
+            String resourceRoute = app.saveResource(uniqueRoute, "txt", content);
+            response.forPost(resourceRoute, "Parameters: \n" + content, MIMETypes.plain);
+        });
+
 
         return app;
     }

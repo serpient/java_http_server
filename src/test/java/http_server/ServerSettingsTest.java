@@ -1,8 +1,6 @@
 package http_server;
 import org.junit.jupiter.api.Test;
 
-import javax.lang.model.type.ErrorType;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

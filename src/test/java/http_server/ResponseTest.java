@@ -2,6 +2,7 @@ package http_server;
 
 import http_standards.Headers;
 import http_standards.MIMETypes;
+import http_standards.Parser;
 import http_standards.RequestCreator;
 import http_standards.StatusCode;
 import http_standards.Stringer;
@@ -35,46 +36,42 @@ public class ResponseTest {
     @Test
     public void response_can_check_if_request_has_invalid_route() {
         String request = "GET /undefined_route HTTP/1.1" + Stringer.crlf;
-        Response response = createResponseObject(request);
+        String response = new String(createResponseObject(request).create());
 
-        assertEquals(false, response.requestIsValid());
-        assertEquals(StatusCode.notFound, response.getStatus());
-        assertEquals(null, response.getBody());
+        assertEquals("404", Parser.getStatusCode(response));
+        assertEquals(null, Parser.getBody(response));
     }
 
     @Test
     public void response_can_check_if_request_has_invalid_method() {
         String request = "PUT /simple_get HTTP/1.1" + Stringer.crlf;
-        Response response = createResponseObject(request);
+        String response = new String(createResponseObject(request).create());
 
-        assertEquals(false, response.requestIsValid());
-        assertEquals(StatusCode.methodNotAllowed, response.getStatus());
-        assertEquals("OPTIONS, GET, HEAD", response.getHeaders().get(Headers.allowedHeaders));
-        assertEquals(null, response.getBody());
+        assertEquals("405", Parser.getStatusCode(response));
+        assertEquals("OPTIONS, GET, HEAD", Parser.getHeaders(response).get(Headers.allowedHeaders));
+        assertEquals(null, Parser.getBody(response));
     }
 
     @Test
     public void response_can_check_if_post_has_no_body_response() {
         String request = "POST /dog HTTP/1.1" + Stringer.crlf;
-        Response response = createResponseObject(request);
+        String response = new String(createResponseObject(request).create());
 
-        assertEquals(false, response.requestIsValid());
-        assertEquals(StatusCode.noContent, response.getStatus());
-        assertEquals(null, response.getHeaders().get(Headers.contentLength));
-        assertEquals(null, response.getHeaders().get(Headers.contentType));
-        assertEquals(null, response.getBody());
+        assertEquals("204", Parser.getStatusCode(response));
+        assertEquals(null, Parser.getHeaders(response).get(Headers.contentLength));
+        assertEquals(null, Parser.getHeaders(response).get(Headers.contentType));
+        assertEquals(null, Parser.getBody(response));
     }
 
     @Test
     public void response_can_check_if_put_has_no_body_response() {
         String request = "PUT /cat/1 HTTP/1.1" + Stringer.crlf;
-        Response response = createResponseObject(request);
+        String response = new String(createResponseObject(request).create());
 
-        assertEquals(false, response.requestIsValid());
-        assertEquals(StatusCode.noContent, response.getStatus());
-        assertEquals(null, response.getHeaders().get(Headers.contentLength));
-        assertEquals(null, response.getHeaders().get(Headers.contentType));
-        assertEquals(null, response.getBody());
+        assertEquals("204", Parser.getStatusCode(response));
+        assertEquals(null, Parser.getHeaders(response).get(Headers.contentLength));
+        assertEquals(null, Parser.getHeaders(response).get(Headers.contentType));
+        assertEquals(null, Parser.getBody(response));
     }
 
 
@@ -83,14 +80,14 @@ public class ResponseTest {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
 
-        assertEquals(true, response.requestIsValid());
+        assertEquals(StatusCode.ok, response.getStatus());
     }
 
     @Test
     public void response_can_format_full_response_from_file() {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
-        response.sendFile("/water.png");
+        response.setFile("/water.png");
         byte[] readImage = mockRepository.readFile("./public/water.png");
 
         assertEquals(StatusCode.ok, response.getStatus());
@@ -118,7 +115,7 @@ public class ResponseTest {
         String request = request_line + content_type + content_length + Stringer.crlf + body;
         byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.sendBody(bodyBytes, MIMETypes.plain);
+        response.setBody(bodyBytes, MIMETypes.plain);
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals("16", response.getHeaders().get(Headers.contentLength));
@@ -135,7 +132,7 @@ public class ResponseTest {
         String request = request_line + content_type + content_length + Stringer.crlf + body;
         byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.successfulPut();
+        response.forPut();
 
         assertEquals(StatusCode.created, response.getStatus());
         assertEquals(null, response.getHeaders().get(Headers.contentLength));
@@ -152,7 +149,7 @@ public class ResponseTest {
         String request = request_line + content_type + content_length + Stringer.crlf + body;
         byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.successfulPost("/dog/1");
+        response.forPost("/dog/1");
 
         assertEquals(StatusCode.created, response.getStatus());
         assertEquals("/dog/1", response.getHeaders().get(Headers.location));
@@ -165,7 +162,7 @@ public class ResponseTest {
         String request = request_line + Stringer.crlf;
         byte[] bodyBytes = "HELLO".getBytes();
         Response response = createResponseObject(request);
-        response.head(bodyBytes, MIMETypes.plain);
+        response.forHead(bodyBytes, MIMETypes.plain);
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals("5", response.getHeaders().get(Headers.contentLength));
@@ -178,7 +175,7 @@ public class ResponseTest {
         String request_line = "OPTIONS /get_with_body HTTP/1.1" + Stringer.crlf;
         String request = request_line + Stringer.crlf;
         Response response = createResponseObject(request);
-        response.options(mockRouter.createOptionsHeader("/get_with_body"));
+        response.forOptions(mockRouter.createOptionsHeader("/get_with_body"));
 
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals("OPTIONS, HEAD", response.getHeaders().get(Headers.allowedHeaders));

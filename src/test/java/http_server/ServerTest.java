@@ -133,10 +133,10 @@ public class ServerTest {
 
     String directoryBody = "<!DOCTYPE html>\n" +
             "<html lang=\"en\">\n" +
-            "<head>\n" +
+            "<forHead>\n" +
             "<meta charset=\"UTF-8\">\n" +
             "<title>Home Page</title>\n" +
-            "<style>.directory-page {    padding: 20px;    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\",    \"Droid Sans\", \"Helvetica Neue\", sans-serif;    font-size: 20px;}.bullets {    color: grey;    margin: 20px 0px;}h1 {    text-align: center;    color: dark-grey;    font-weight: 600;    font-size: 42px;}hr {    color: grey;    border-weight: 2px;}</style></head>\n" +
+            "<style>.directory-page {    padding: 20px;    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\",    \"Droid Sans\", \"Helvetica Neue\", sans-serif;    font-size: 20px;}.bullets {    color: grey;    margin: 20px 0px;}h1 {    text-align: center;    color: dark-grey;    font-weight: 600;    font-size: 42px;}hr {    color: grey;    border-weight: 2px;}</style></forHead>\n" +
             "<body>\n" +
             "<div class='directory-page'><h1>Directory for /public</h1><hr /><ul>\n" +
             "<li class='bullets'><a href='/public/Home.html'>Home.html</a></li>\n" +
@@ -403,5 +403,32 @@ public class ServerTest {
         assertEquals("200", Parser.getStatusCode(response));
         assertEquals(true, Parser.getBody(response).contains("author=@Mrs JK Rowling"));
         assertEquals(true, Parser.getBody(response).contains("message=Hello Günter"));
+    }
+
+    @Test
+    public void server_can_handle_form_data_in_post_request() {
+        assertAll("post form request",
+            () -> {
+                String requestLine = "POST /post_form HTTP/1.1" + Stringer.crlf;
+                String content_type = "Content-Type: application/x-www-form-urlencoded" + Stringer.crlf;
+                String body = Stringer.crlf + "firstname=%40lilgangwolf+What%27s+Up&lastname=%40u%24to";
+                String request = requestLine + content_type + body;
+
+                String response = runSessionAndRetrieveResponse(request);
+
+                assertEquals("201", Parser.getStatusCode(response));
+                assertEquals("/post_form/1", Parser.getHeaders(response).get(Headers.location));
+                assertEquals(true, Parser.getBody(response).contains("firstname=@lilgangwolf What's Up"));
+                assertEquals(true, Parser.getBody(response).contains("lastname=@u$to"));
+            },
+            () -> {
+                String request = "GET /post_form/1 HTTP/1.1";
+                String response = runSessionAndRetrieveResponse(request);
+
+                assertEquals("200", Parser.getStatusCode(response));
+                assertEquals(true, Parser.getBody(response).contains("firstname=@lilgangwolf What's Up"));
+                assertEquals(true, Parser.getBody(response).contains("lastname=@u$to"));
+            }
+        );
     }
 }

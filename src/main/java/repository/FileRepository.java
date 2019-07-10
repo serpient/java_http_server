@@ -113,7 +113,6 @@ public class FileRepository implements Repository {
 
     public void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
         Path path = Paths.get(intendedFilePath + "." + fileType);
-
         createDirectories(Paths.get(trimLastResource(intendedFilePath)));
 
         try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {

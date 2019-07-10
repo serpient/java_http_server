@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 public class Router {
     private HashMap<String, HashMap<String, Callback>> routes;
-    private Set<String> methods;
     private Path basePath;
     private static Path fullDirectoryPath;
     private Repository repository;
@@ -22,22 +21,15 @@ public class Router {
 
     public Router() {
         this.routes = new HashMap<>();
-        this.methods = new LinkedHashSet<>();
-        methods.add(Methods.get);
-        methods.add(Methods.head);
-        methods.add(Methods.post);
-        methods.add(Methods.put);
-        methods.add(Methods.options);
-        methods.add(Methods.delete);
-        repository = new FileRepository();
-        port = 5000;
-        basePath = Paths.get(System.getProperty("user.dir"));
+        this.repository = new FileRepository();
+        this.port = 5000;
+        this.basePath = Paths.get(System.getProperty("user.dir"));
     }
 
-    public Router(String staticDirectoryRelativePath) {
+    public Router(String directoryPath) {
         this();
-        if (staticDirectoryRelativePath != "") {
-            staticDirectory(staticDirectoryRelativePath);
+        if (directoryPath != "") {
+            staticDirectory(directoryPath);
         }
     }
 
@@ -59,10 +51,6 @@ public class Router {
 
     public HashMap<String, HashMap<String, Callback>> getRouter() {
         return routes;
-    }
-
-    public Set<String> getMethods() {
-        return methods;
     }
 
     public static Path getFullDirectoryPath() {
@@ -94,7 +82,7 @@ public class Router {
     }
 
     public void all(String route, Callback handler) {
-        for (String method : methods) {
+        for (String method : getMethods()) {
             updateRoutes(method, route, handler);
         }
     }
@@ -106,10 +94,14 @@ public class Router {
         routes.put(route, methodCollection);
     }
 
+    private Set<String> getMethods() {
+        return Methods.allMethods();
+    }
+
     private void setOptionsMethod(HashMap<String, Callback> methodCollection) {
         if (!methodCollection.containsKey(Methods.options)) {
             methodCollection.put(Methods.options, (Request request, Response response) -> {
-                response.options(createOptionsHeader(request.getRoute()));
+                response.forOptions(createOptionsHeader(request.getRoute()));
             });
         }
     }
@@ -137,32 +129,45 @@ public class Router {
         return routes.get(route) == null ? new HashMap<>() : routes.get(route);
     }
 
-    public void fillResponseForRequest(Request request, Response response) {
+    public void fillResponse(Request request, Response response) {
         getMethodCollection(request.getRoute()).get(request.getMethod()).run(request, response);
     }
 
     private String trimPath(String path) {
-        int trimFrom = path.lastIndexOf(".");
-        return path.substring(trimFrom + 1);
+        if (path.startsWith(".") || path.startsWith("/")) {
+            int trimFrom = path.lastIndexOf(".");
+            return path.substring(trimFrom + 1);
+        } else {
+            return path;
+        }
+
     }
 
     public void staticDirectory(String directoryPath) {
         this.fullDirectoryPath = Paths.get(basePath.toString(), directoryPath);
-        String formattedDirectoryPath = directoryPath.startsWith(".") || directoryPath.startsWith("/") ? trimPath(directoryPath) : directoryPath;
-        resource = new ResourceHandler(this, formattedDirectoryPath);
-        resource.createStaticDirectory(formattedDirectoryPath);
+        String formattedDirectoryPath = trimPath(directoryPath);
+        this.resource = new ResourceHandler(this, formattedDirectoryPath);
+        resource.createDirectory(formattedDirectoryPath);
+    }
+
+    public void deleteResource(String resourcePath, String fileType) {
+        resource.delete(resourcePath + "." + fileType);
+        resource.paths(resourcePath, fileType).forEach(pathToDelete -> deleteRoutes(pathToDelete));
+    }
+
+    private void deleteRoutes(String resourcePath) {
+        routes.remove(resourcePath);
     }
 
     public String saveResource(String resourcePath, String fileType, byte[] content) {
-        resource.save(resourcePath + "." + fileType, fileType, content);
+        resource.save(resourcePath, fileType, content);
         resource.paths(resourcePath, fileType).forEach(path -> {
             get(path, (Request request, Response response) -> {
-                response.sendFile(resourcePath + "." + fileType);
+                response.setFile(resourcePath + "." + fileType);
             });
             delete(path, (Request request, Response response) -> {
-                resource.delete(resourcePath + "." + fileType, fileType);
-                resource.paths(resourcePath, fileType).forEach(pathToDelete -> deleteRoutes(pathToDelete));
-                response.successfulDelete();
+                deleteResource(resourcePath, fileType);
+                response.forDelete();
             });
         });
         return resourcePath;
@@ -199,14 +204,5 @@ public class Router {
                     return Integer.parseInt(s.substring(idx + 1));
                 })
                 .max(Comparator.comparing(Integer::valueOf)).get();
-    }
-
-    public void deleteResource(String resourcePath, String fileType) {
-        resource.delete(resourcePath, fileType);
-        resource.paths(resourcePath, fileType).forEach(path -> deleteRoutes(path));
-    }
-
-    public void deleteRoutes(String resourcePath) {
-        routes.remove(resourcePath);
     }
 }

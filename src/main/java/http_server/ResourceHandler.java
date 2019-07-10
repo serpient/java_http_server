@@ -18,11 +18,11 @@ public class ResourceHandler {
         this.directoryPath = directoryPath;
     }
 
-    public void createStaticDirectory(String directoryPath) {
+    public void createDirectory(String directoryPath) {
         List<String> directoryContents = router.getRepository().readDirectoryContents(fullDirectoryPath.toString());
-        createStaticResourceRoute(directoryContents, directoryPath);
+        createContentRoutes(directoryContents, directoryPath);
         router.get(directoryPath, (Request request, Response response) -> {
-            response.sendBody(new DirectoryPageCreator(directoryContents, directoryPath).generateHTML().getBytes(), MIMETypes.html);
+            response.setBody(new DirectoryPageCreator(directoryContents, directoryPath).generateHTML().getBytes(), MIMETypes.html);
         });
 
         router.get("/", (Request request, Response response) -> {
@@ -30,13 +30,13 @@ public class ResourceHandler {
         });
     }
 
-    private void createStaticResourceRoute(List<String> directoryContents, String directoryPath) {
+    private void createContentRoutes(List<String> directoryContents, String directoryPath) {
         for (int i = 0; i < directoryContents.size(); i++) {
             String fileName = directoryContents.get(i);
             String filePath = directoryPath + "/" + fileName;
 
             router.get(filePath, (Request request, Response response) -> {
-                response.sendFile("/" + fileName);
+                response.setFile("/" + fileName);
             });
         }
     }
@@ -45,7 +45,7 @@ public class ResourceHandler {
         router.getRepository().writeFile(fullDirectoryPath + resourcePath, fileType, content);
     }
 
-    public void delete(String resourcePath, String fileType) {
+    public void delete(String resourcePath) {
         router.getRepository().deleteFile(fullDirectoryPath + resourcePath);
     }
 
