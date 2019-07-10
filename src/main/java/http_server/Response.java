@@ -147,6 +147,14 @@ public class Response {
         this.status = StatusCode.noContent;
     }
 
+    public void forPatch(boolean successfulPatch) {
+        if (successfulPatch) {
+            this.status = StatusCode.noContent;
+        } else {
+            this.status = StatusCode.badRequest;
+        }
+    }
+
     public void forOptions(String allowedHeaders) {
         setHeader(Headers.allowedHeaders, allowedHeaders);
     }

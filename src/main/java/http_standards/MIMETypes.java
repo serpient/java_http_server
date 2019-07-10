@@ -13,6 +13,7 @@ public class MIMETypes {
     public static String xml = "text/xml";
     public static String javascript = "application/javascript";
     public static String formUrlEncoded = "application/x-www-form-urlencoded";
+    public static String jsonPatch = "application/json-patch+json";
 
     private static HashMap<String, String> types = new HashMap<String, String>() {{
         put(plain, "txt");
@@ -24,6 +25,7 @@ public class MIMETypes {
         put(xml, "xml");
         put(javascript, "js");
         put(formUrlEncoded, "txt");
+        put(jsonPatch, "json");
     }};
 
     public static boolean isMIMEType(String mimeType) {

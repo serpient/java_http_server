@@ -23,7 +23,7 @@ public class MockRouter {
     private Router createRouter() {
         Router app = new Router();
 
-        app.staticDirectory("/public");
+        app.directory("/public");
 
         app.setRepository(repository);
 
@@ -128,6 +128,11 @@ public class MockRouter {
             String resourceRoute = app.saveResource(uniqueRoute, "txt", content);
             response.forPost(resourceRoute);
             response.setBody("Parameters: \n" + content, MIMETypes.plain);
+        });
+
+        app.patch("/contacts/1", (Request request, Response response) -> {
+            boolean updateResult = app.updateJSONResource(request.getRoute(), request.getBody());
+            response.forPatch(updateResult);
         });
 
         return app;

@@ -29,7 +29,7 @@ public class Router {
     public Router(String directoryPath) {
         this();
         if (directoryPath != "") {
-            staticDirectory(directoryPath);
+            directory(directoryPath);
         }
     }
 
@@ -79,6 +79,10 @@ public class Router {
 
     public void delete(String route, Callback handler) {
         updateRoutes(Methods.delete, route, handler);
+    }
+
+    public void patch(String route, Callback handler) {
+        updateRoutes(Methods.patch, route, handler);
     }
 
     public void all(String route, Callback handler) {
@@ -143,7 +147,7 @@ public class Router {
 
     }
 
-    public void staticDirectory(String directoryPath) {
+    public void directory(String directoryPath) {
         this.fullDirectoryPath = Paths.get(basePath.toString(), directoryPath);
         String formattedDirectoryPath = trimPath(directoryPath);
         this.resource = new ResourceHandler(this, formattedDirectoryPath);
@@ -204,5 +208,9 @@ public class Router {
                     return Integer.parseInt(s.substring(idx + 1));
                 })
                 .max(Comparator.comparing(Integer::valueOf)).get();
+    }
+
+    public boolean updateJSONResource(String filePath, String patchDocument) {
+        return resource.updateJSON(filePath,  patchDocument);
     }
 }

@@ -133,6 +133,10 @@ public class App {
             response.forPost(resourceRoute, "Parameters: \n" + content, MIMETypes.plain);
         });
 
+        app.patch("/contacts/1", (Request request, Response response) -> {
+            boolean updateResult = app.updateJSONResource(request.getRoute(), request.getBody());
+            response.forPatch(updateResult);
+        });
 
         return app;
     }

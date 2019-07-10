@@ -11,6 +11,7 @@ public class Methods {
     public final static String options = "OPTIONS";
     public final static String put = "PUT";
     public final static String delete = "DELETE";
+    public final static String patch = "PATCH";
     private final static List<String> creationMethods = Arrays.asList(new String[]{post, put});
 
 
@@ -26,6 +27,7 @@ public class Methods {
         methods.add(Methods.put);
         methods.add(Methods.options);
         methods.add(Methods.delete);
+        methods.add(Methods.patch);
 
         return methods;
     }
