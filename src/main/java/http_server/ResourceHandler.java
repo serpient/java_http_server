@@ -72,14 +72,14 @@ public class ResourceHandler {
         JSONObject updatedJSONObject = JSONHandler.parse(jsonFile);
 
         for (int i = 0; i < patchInstructions.length(); i++) {
-            JSONObject instructions = (JSONObject) patchInstructions.get(i);
+            JSONObject instructions = patchInstructions.getJSONObject(i);
             if (!instructions.keySet().contains("op") && !instructions.keySet().contains("path")) {
                 System.err.println("Invalid JSON patch document. Terminating update request.");
                 return false;
             }
-            String operation = (String) instructions.get("op");
-            String path = (String) instructions.get("path");
-            String value = instructions.has("value") ? (String) instructions.get("value") : "";
+            String operation = instructions.getString("op");
+            String path = instructions.getString("path");
+            String value = instructions.has("value") ? instructions.getString("value") : "";
 
             updatedJSONObject = JSONHandler.run(operation, path, value, updatedJSONObject);
         }
