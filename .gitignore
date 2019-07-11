@@ -41,3 +41,6 @@ gradle
 
 # Operating System
 .DS_STORE
+
+# Server Logs
+/log

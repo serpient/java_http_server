@@ -37,8 +37,9 @@ public class Server {
                         new StreamWriter(outputStream));
 
                 Session session = new Session(clientSocketWrapper, router);
-
-                String threadName = "CLIENT_SESSION_" + new Random().nextInt(5000);
+                int sessionId = new Random().nextInt(5000);
+                session.setId(sessionId);
+                String threadName = "CLIENT_SESSION_" + sessionId;
                 Thread t = new Thread(session, threadName);
                 t.start();
 

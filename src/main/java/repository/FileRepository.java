@@ -20,6 +20,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
+
 public class FileRepository implements Repository {
     public List<String> readDirectoryContents(String path) {
         List<String> fileList = new ArrayList<String>();
@@ -112,11 +115,22 @@ public class FileRepository implements Repository {
     }
 
     public void writeFile(String intendedFilePath, String fileType, byte[] fileContents) {
+        streamWriter(intendedFilePath, fileType, fileContents, false);
+    }
+
+    public void writeAndAppendFile(String intendedFilePath, String fileType, byte[] fileContents) {
+        streamWriter(intendedFilePath, fileType, fileContents, true);
+    }
+
+    private void streamWriter(String intendedFilePath, String fileType, byte[] fileContents, boolean appendFile)  {
         Path path = Paths.get(intendedFilePath + "." + fileType);
         createDirectories(Paths.get(trimLastResource(intendedFilePath)));
-
-        try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {
+        try {
+            OutputStream fileOptions = appendFile ? Files.newOutputStream(path,  CREATE, APPEND) : Files.newOutputStream(path);
+            OutputStream out = new BufferedOutputStream(fileOptions);
             out.write(fileContents, 0, fileContents.length);
+            out.flush();
+            out.close();
         } catch (IOException e) {
             System.err.println(e);
         }

@@ -7,5 +7,6 @@ public interface Repository {
     byte[] readFile(String path);
     String getFileType(String path);
     void writeFile(String intendedFilePath, String fileType, byte[] fileContents);
+    void writeAndAppendFile(String intendedFilePath, String fileType, byte[] fileContents);
     void deleteFile(String filePath);
 }

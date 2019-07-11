@@ -56,6 +56,15 @@ public class MockRepositoryTest {
     }
 
     @Test
+    public void repository_can_append_a_file() {
+        byte[] existingContent = "test content".getBytes();
+        repository.writeFile("./public/test_file", "txt", existingContent);
+        byte[] newContent = "hello".getBytes();
+        repository.writeAndAppendFile("./public/test_file", "txt", newContent);
+        assertEquals("test contenthello", new String(repository.readFile("./public/test_file.txt")));
+    }
+
+    @Test
     public void repository_can_get_file_type() {
         assertEquals(MIMETypes.png, repository.getFileType("./public/water.png"));
     }
