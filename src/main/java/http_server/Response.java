@@ -3,10 +3,8 @@ package http_server;
 import http_standards.Headers;
 import http_standards.Methods;
 import http_standards.StatusCode;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import http_standards.Timestamp;
+
 import java.util.LinkedHashMap;
 
 public class Response {
@@ -68,11 +66,7 @@ public class Response {
     }
 
     private void initDefaultHeaders() {
-        ZonedDateTime date = LocalDateTime.now().atZone(ZoneId.of("GMT+00"));
-        DateTimeFormatter byPattern = DateTimeFormatter.ofPattern("E, MMM dd yyyy HH:mm:ss z");
-        String currentDateTime = date.format(byPattern);
-
-        setHeader(Headers.date, currentDateTime);
+        setHeader(Headers.date, Timestamp.GMT());
         setHeader(Headers.server, "JavaServer/0.1");
     }
 

@@ -1,5 +1,6 @@
 package repository;
 
+import http_standards.MIMETypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,6 +90,15 @@ public class FileRepositoryTest {
         String body = "Dog Breed: Corgi";
         fileHandler.writeFile(path, "txt", body.getBytes());
         assertEquals(body, new String(fileHandler.readFile("./public/test/1.txt")));
+    }
+
+    @Test
+    public void repository_can_append_a_file() {
+        byte[] existingContent = "test content".getBytes();
+        fileHandler.writeFile("./public/test/test_file", "txt", existingContent);
+        byte[] newContent = "hello".getBytes();
+        fileHandler.writeAndAppendFile("./public/test/test_file", "txt", newContent);
+        assertEquals("test contenthello", new String(fileHandler.readFile("./public/test/test_file.txt")));
     }
 
     @Test

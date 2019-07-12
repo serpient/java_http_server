@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.Repository;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -516,5 +518,17 @@ public class ServerTest {
                     assertEquals(jsonString, Parser.getBody(response));
                 }
         );
+    }
+
+    @Test
+    public void server_logs_request_and_response() {
+        String request = "GET /harry_potter HTTP/1.1";
+        String response = runSessionAndRetrieveResponse(request);
+
+        List<String> files = router.getRepository().readDirectoryContents("./log");
+        System.err.println(files.get(0));
+        String logFile = new String(router.getRepository().readFile("./log/" + files.get(0)));
+        assertEquals(true, logFile.contains(response));
+        assertEquals(true, logFile.contains(request));
     }
 }

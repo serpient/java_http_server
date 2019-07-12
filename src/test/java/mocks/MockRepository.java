@@ -41,12 +41,35 @@ public class MockRepository implements Repository  {
         memoryRepository.put(intendedFilePath, new MockFile(fileName, validatedFileType, fileContents));
     }
 
+    public void writeAndAppendFile(String path, String fileType, byte[] fileContents) {
+        String validatedPath = validatedPath(path);
+        String fileName = validatedPath.substring(validatedPath.lastIndexOf("/"));
+        String validatedFileType = MIMETypes.isMIMEType(fileType) ? fileType : MIMETypes.getMIMEType(fileType);
+
+        byte[] appendedContents = appendFileContents(validatedPath, fileContents);
+        memoryRepository.put(validatedPath, new MockFile(fileName, validatedFileType, appendedContents));
+    }
+
+    private byte[] appendFileContents(String path, byte[] fileContents) {
+        String content = "";
+        if (memoryRepository.containsKey(path)) {
+            content = new String(readFile(path));
+        }
+        String appendedContent = content + new String(fileContents);
+        return appendedContent.getBytes();
+    }
+
     public void deleteFile(String filePath) {
         memoryRepository.remove(validatedPath(filePath));
     }
 
     public String validatedPath(String path) {
-        return path.startsWith(directory) ? path : path.substring(path.indexOf(directory));
+        if (path.contains(directory)) {
+            return path.startsWith(directory) ? path : path.substring(path.indexOf(directory));
+        } else {
+            return path;
+        }
+
     }
 
     private String trimmedPath(String path) {
