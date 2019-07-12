@@ -17,19 +17,16 @@ public class JSONHandler {
     }
 
     public static JSONObject run(String operation, String queryPath, String value, JSONObject jsonObject) {
-        JSONObject newObject = jsonObject;
         switch (operation) {
             case "replace":
-                newObject = replace(jsonObject, queryPath, value);
-                break;
+                return replace(jsonObject, queryPath, value);
             case "remove":
-                newObject = remove(jsonObject, queryPath);
-                break;
+                return remove(jsonObject, queryPath);
             case "add":
-                newObject = add(jsonObject, queryPath, value);
-                break;
+                return add(jsonObject, queryPath, value);
+            default:
+                return jsonObject;
         }
-        return newObject;
     }
 
     public static JSONObject replace(JSONObject jsonObject, String key, String value) {
