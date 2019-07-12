@@ -143,7 +143,7 @@ public class RouterTest {
 
     @Test
     public void Router_Can_Set_A_Public_Directory_Route() {
-        router.staticDirectory("/public");
+        router.directory("/public");
 
         assertEquals(true, collection.get("/public").containsKey("GET"));
     }
@@ -173,7 +173,7 @@ public class RouterTest {
     @Test
     public void Router_can_save_resources() {
         router.basePath(Paths.get(System.getProperty("user.dir")));
-        router.staticDirectory("/public");
+        router.directory("/public");
         router.saveResource("/dog/1", "html", "DELETE ME".getBytes());
 
         assertEquals(true, router.getMethodCollection("/dog/1").containsKey(Methods.get));
@@ -185,7 +185,7 @@ public class RouterTest {
     @Test
     public void Router_can_delete_resources_and_routes() {
         router.basePath(Paths.get(System.getProperty("user.dir")));
-        router.staticDirectory("/public");
+        router.directory("/public");
         router.saveResource("/delete_me", "txt", "DELETE ME".getBytes());
         router.deleteResource("/delete_me", "txt");
 

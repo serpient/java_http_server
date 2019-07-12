@@ -2,6 +2,9 @@ package http_server;
 
 import directory_page_creator.DirectoryPageCreator;
 import http_standards.MIMETypes;
+import json_handler.JSONHandler;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -58,4 +61,30 @@ public class ResourceHandler {
         );
     }
 
+    public boolean updateJSON(String resourcePath, String patchDocument) {
+        if (!patchDocument.startsWith("[")) {
+            System.err.println("Invalid JSON patch document. Terminating update request.");
+            return false;
+        }
+
+        String jsonFile = new String(router.getRepository().readFile(fullDirectoryPath + resourcePath + ".json"));
+        JSONArray patchInstructions = JSONHandler.parseArray(patchDocument);
+        JSONObject updatedJSONObject = JSONHandler.parse(jsonFile);
+
+        for (int i = 0; i < patchInstructions.length(); i++) {
+            JSONObject instructions = patchInstructions.getJSONObject(i);
+            if (!instructions.keySet().contains("op") && !instructions.keySet().contains("path")) {
+                System.err.println("Invalid JSON patch document. Terminating update request.");
+                return false;
+            }
+            String operation = instructions.getString("op");
+            String path = instructions.getString("path");
+            String value = instructions.has("value") ? instructions.getString("value") : "";
+
+            updatedJSONObject = JSONHandler.run(operation, path, value, updatedJSONObject);
+        }
+
+        save(resourcePath, "json", updatedJSONObject.toString().getBytes());
+        return true;
+    }
 }

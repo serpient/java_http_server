@@ -413,7 +413,6 @@ public class ServerTest {
                 String content_type = "Content-Type: application/x-www-form-urlencoded" + Stringer.crlf;
                 String body = Stringer.crlf + "firstname=%40lilgangwolf+What%27s+Up&lastname=%40u%24to";
                 String request = requestLine + content_type + body;
-
                 String response = runSessionAndRetrieveResponse(request);
 
                 assertEquals("201", Parser.getStatusCode(response));
@@ -429,6 +428,93 @@ public class ServerTest {
                 assertEquals(true, Parser.getBody(response).contains("firstname=@lilgangwolf What's Up"));
                 assertEquals(true, Parser.getBody(response).contains("lastname=@u$to"));
             }
+        );
+    }
+
+    @Test
+    public void patch_request_can_apply_partial_modifications_to_a_resource() {
+        String jsonString = "{  \n" +
+                "   \"firstName\":\"Teddy\",\n" +
+                "   \"lastName\":\"Roosevelt\",\n" +
+                "   \"city\":\"Los Angeles\"\n" +
+                "}";
+        router.saveResource("/contacts/1", "json", jsonString);
+
+        assertAll("patch request",
+                () -> {
+                    String request = "GET /contacts/1 HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals(true, Parser.getBody(response).contains("{  \n" +
+                            "   \"firstName\":\"Teddy\",\n" +
+                            "   \"lastName\":\"Roosevelt\",\n" +
+                            "   \"city\":\"Los Angeles\"\n" +
+                            "}"));
+                },
+                () -> {
+                    String requestLine = "PATCH /contacts/1 HTTP/1.1" + Stringer.crlf;
+                    String content_type = "Content-Type: application/json-patch+json" + Stringer.crlf;
+                    String patchDocument = "[\n" +
+                            "  { \"op\": \"replace\", \"path\": \"/firstName\", \"value\": \"Maria\" },\n" +
+                            "  { \"op\": \"add\", \"path\": \"/school\", \"value\": \"MIT\" },\n" +
+                            "]";
+                    String body = Stringer.crlf + patchDocument;
+                    String request = requestLine + content_type + body;
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("204", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request = "GET /contacts/1 HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+                    System.err.println(response);
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals("{\"firstName\":\"Maria\",\"lastName\":\"Roosevelt\",\"city\":\"Los Angeles\",\"school\":\"MIT\"}", Parser.getBody(response));
+                }
+        );
+    }
+
+    @Test
+    public void patch_request_can_handle_bad_request() {
+        String jsonString = "{  \n" +
+                "   \"firstName\":\"Teddy\",\n" +
+                "   \"lastName\":\"Roosevelt\",\n" +
+                "   \"city\":\"Los Angeles\"\n" +
+                "}";
+        router.saveResource("/contacts/1", "json", jsonString);
+
+        assertAll("patch request",
+                () -> {
+                    String request = "GET /contacts/1 HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals(true, Parser.getBody(response).contains("{  \n" +
+                            "   \"firstName\":\"Teddy\",\n" +
+                            "   \"lastName\":\"Roosevelt\",\n" +
+                            "   \"city\":\"Los Angeles\"\n" +
+                            "}"));
+                },
+                () -> {
+                    String requestLine = "PATCH /contacts/1 HTTP/1.1" + Stringer.crlf;
+                    String content_type = "Content-Type: application/json-patch+json" + Stringer.crlf;
+                    String invalidPatchDocument = "{ \"to\": \"replace\", \"path\": \"/firstName\", \"value\": " +
+                            "\"Maria\" },\n" +
+                            "  { \"op\": \"add\", \"path\": \"/school\", \"value\": \"MIT\" }";
+                    String body = Stringer.crlf + invalidPatchDocument;
+                    String request = requestLine + content_type + body;
+                    String response = runSessionAndRetrieveResponse(request);
+
+                    assertEquals("400", Parser.getStatusCode(response));
+                },
+                () -> {
+                    String request = "GET /contacts/1 HTTP/1.1";
+                    String response = runSessionAndRetrieveResponse(request);
+                    System.err.println(response);
+                    assertEquals("200", Parser.getStatusCode(response));
+                    assertEquals(jsonString, Parser.getBody(response));
+                }
         );
     }
 }
