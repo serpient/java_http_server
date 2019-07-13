@@ -205,7 +205,13 @@ public class Router {
                 .filter(s -> s.startsWith(route + "/") && !s.endsWith(":id"))
                 .map(s -> {
                     int idx = s.lastIndexOf("/");
-                    return Integer.parseInt(s.substring(idx + 1));
+                    String resourceName = s.substring(idx + 1);
+                    if (resourceName.contains(".")) {
+                        int lastIdx = resourceName.lastIndexOf(".");
+                        resourceName = resourceName.substring(0,lastIdx);
+                    }
+
+                    return Integer.parseInt(resourceName);
                 })
                 .max(Comparator.comparing(Integer::valueOf)).get();
     }

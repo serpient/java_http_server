@@ -429,6 +429,33 @@ public class ServerTest {
                 assertEquals("200", Parser.getStatusCode(response));
                 assertEquals(true, Parser.getBody(response).contains("firstname=@lilgangwolf What's Up"));
                 assertEquals(true, Parser.getBody(response).contains("lastname=@u$to"));
+            },
+            () -> {
+                String requestLine = "POST /post_form HTTP/1.1" + Stringer.crlf;
+                String content_type = "Content-Type: application/x-www-form-urlencoded" + Stringer.crlf;
+                String body = Stringer.crlf + "firstname=%40lilgangwolf+What%27s+Up&lastname=%40u%24to";
+                String request = requestLine + content_type + body;
+                String response = runSessionAndRetrieveResponse(request);
+
+                assertEquals("201", Parser.getStatusCode(response));
+                assertEquals("/post_form/2", Parser.getHeaders(response).get(Headers.location));
+                assertEquals(true, Parser.getBody(response).contains("firstname=@lilgangwolf What's Up"));
+                assertEquals(true, Parser.getBody(response).contains("lastname=@u$to"));
+            },
+            () -> {
+                String request = "GET /post_form/2 HTTP/1.1";
+                String response = runSessionAndRetrieveResponse(request);
+
+                assertEquals("200", Parser.getStatusCode(response));
+                assertEquals(true, Parser.getBody(response).contains("firstname=@lilgangwolf What's Up"));
+                assertEquals(true, Parser.getBody(response).contains("lastname=@u$to"));
+            },
+            () -> {
+                String request = "GET /public HTTP/1.1";
+                String response = runSessionAndRetrieveResponse(request);
+
+                assertEquals("200", Parser.getStatusCode(response));
+                assertEquals(true, Parser.getBody(response).contains("post_form/2"));
             }
         );
     }
