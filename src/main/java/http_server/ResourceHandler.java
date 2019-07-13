@@ -22,10 +22,10 @@ public class ResourceHandler {
     }
 
     public void createDirectory(String directoryPath) {
-        List<String> directoryContents = router.getRepository().readDirectoryContents(fullDirectoryPath.toString());
-        createContentRoutes(directoryContents, directoryPath);
+        initializeDirectory();
+
         router.get(directoryPath, (Request request, Response response) -> {
-            response.setBody(new DirectoryPageCreator(directoryContents, directoryPath).generateHTML().getBytes(), MIMETypes.html);
+            response.setBody(initializeDirectory().getBytes(), MIMETypes.html);
         });
 
         router.get("/", (Request request, Response response) -> {
@@ -33,13 +33,29 @@ public class ResourceHandler {
         });
     }
 
-    private void createContentRoutes(List<String> directoryContents, String directoryPath) {
+    private String initializeDirectory() {
+        List<String> directoryContents = router.getRepository().readDirectoryContents(fullDirectoryPath.toString());
+        createContentRoutes(directoryContents);
+        String directoryHTML = new DirectoryPageCreator(directoryContents, directoryPath).generateHTML();
+        return directoryHTML;
+    }
+
+    public void createContentRoutes(List<String> directoryContents) {
         for (int i = 0; i < directoryContents.size(); i++) {
             String fileName = directoryContents.get(i);
-            String filePath = directoryPath + "/" + fileName;
+            String fileNameWithoutFileType = fileName;
+            if (fileName.contains(".")) {
+                fileNameWithoutFileType = fileName.substring(0, fileName.lastIndexOf("."));
+            }
+            String fileType = fileName.substring(fileName.lastIndexOf(".") + 1);
 
-            router.get(filePath, (Request request, Response response) -> {
-                response.setFile("/" + fileName);
+            paths("/" + fileNameWithoutFileType, fileType).forEach(path -> {
+                router.get(path, (Request request, Response response) -> {
+                    response.setFile("/" + fileName);
+                });
+                router.delete(path, (Request request, Response response) -> {
+                    response.setFile("/" + fileName);
+                });
             });
         }
     }
