@@ -207,4 +207,15 @@ public class RouterTest {
         assertEquals(true, router.getMethodCollection("/dog/1").containsKey(Methods.get));
         assertEquals(true, router.getMethodCollection("/images/dog/1").containsKey(Methods.get));
     }
+
+    @Test
+    public void router_can_get_method_collections_for_subroutes() {
+        router.directory("/public");
+
+        router.patch("/contacts/:id", (Request request, Response response) -> {
+        });
+        
+        assertEquals(true, router.getMethodCollection("/contacts/1").containsKey(Methods.patch));
+        assertEquals(true, router.getMethodCollection("/contacts/2").containsKey(Methods.patch));
+    }
 }

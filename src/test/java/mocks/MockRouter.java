@@ -130,7 +130,7 @@ public class MockRouter {
             response.setBody("Parameters: \n" + content, MIMETypes.plain);
         });
 
-        app.patch("/contacts/1", (Request request, Response response) -> {
+        app.patch("/contacts/:id", (Request request, Response response) -> {
             boolean updateResult = app.updateJSONResource(request.getRoute(), request.getBody());
             response.forPatch(updateResult);
         });

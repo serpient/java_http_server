@@ -558,4 +558,30 @@ public class ServerTest {
         assertEquals(true, logFile.contains(response));
         assertEquals(true, logFile.contains(request));
     }
+
+    @Test
+    public void saver_can_apply_parent_changes_to_child_route() {
+        String jsonString = "{  \n" +
+                "   \"firstName\":\"Teddy\",\n" +
+                "   \"lastName\":\"Roosevelt\",\n" +
+                "   \"city\":\"Los Angeles\"\n" +
+                "}";
+        router.saveResource("/contacts/2", "json", jsonString);
+        router.patch("/contacts/:id", (Request request, Response response) -> {
+            boolean updateResult = router.updateJSONResource(request.getRoute(), request.getBody());
+            response.forPatch(updateResult);
+        });
+
+        String requestLine = "PATCH /contacts/2 HTTP/1.1" + Stringer.crlf;
+        String content_type = "Content-Type: application/json-patch+json" + Stringer.crlf;
+        String patchDocument = "[\n" +
+                "  { \"op\": \"replace\", \"path\": \"/firstName\", \"value\": \"Maria\" },\n" +
+                "  { \"op\": \"add\", \"path\": \"/school\", \"value\": \"MIT\" },\n" +
+                "]";
+        String body = Stringer.crlf + patchDocument;
+        String request = requestLine + content_type + body;
+        String response = runSessionAndRetrieveResponse(request);
+
+        assertEquals("204", Parser.getStatusCode(response));
+    }
 }

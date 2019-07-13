@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -130,6 +131,13 @@ public class Router {
     }
 
     public HashMap<String, Callback> getMethodCollection(String route) {
+        for (String keyRoute: routes.keySet()) {
+            String parentRoute = route.substring(0, route.lastIndexOf("/"));
+            if (keyRoute.startsWith(parentRoute + "/:")) {
+                return routes.get(keyRoute) == null ? new HashMap<>() : routes.get(keyRoute);
+            }
+        }
+
         return routes.get(route) == null ? new HashMap<>() : routes.get(route);
     }
 
