@@ -3,6 +3,7 @@ package http_server;
 import http_standards.MIMETypes;
 import http_standards.Methods;
 import http_standards.RequestCreator;
+import http_standards.StatusCode;
 import http_standards.Stringer;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RouterTest {
     Router router;
@@ -40,7 +42,7 @@ public class RouterTest {
     public void initializeRouter() {
         router = new Router();
         router.setRepository(new MockRepository("/public"));
-        collection = router.getRouter();
+        collection = router.getRoutes();
     }
 
     @AfterEach
@@ -52,7 +54,7 @@ public class RouterTest {
     public void Router_Stores_Collection_Of_Methods_and_Routes() {
         HashMap<String, HashMap<String, Callback>> testRoutesCollection = new HashMap<>();
         Router router = new Router();
-        HashMap<String, HashMap<String, Callback>> collection = router.getRouter();
+        HashMap<String, HashMap<String, Callback>> collection = router.getRoutes();
 
         assertEquals(testRoutesCollection, collection);
     }
@@ -196,11 +198,18 @@ public class RouterTest {
     }
 
     @Test
+    public void router_can_handle_invalid_delete_paths() {
+        router.directory("/public");
+
+        assertEquals(StatusCode.internalError, router.deleteResource("/delete_me", MIMETypes.plain).statusCode());
+    }
+
+    @Test
     public void router_can_be_created_with_different_directory_paths() {
         router = new Router("/images");
         router.setRepository(new MockRepository("/images"));
         router.saveResource("/dog/1", "html", "DELETE ME".getBytes());
-        collection = router.getRouter();
+        collection = router.getRoutes();
 
         assertEquals(true, collection.get("/images").containsKey("GET"));
         assertEquals(false, collection.containsKey("/public"));

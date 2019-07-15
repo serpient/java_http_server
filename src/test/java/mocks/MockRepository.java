@@ -73,7 +73,11 @@ public class MockRepository implements Repository  {
     }
 
     private String trimmedPath(String path) {
-        return path.substring(0, path.lastIndexOf("."));
+        if (path.contains(".")) {
+            return path.substring(0, path.lastIndexOf("."));
+        } else {
+            return path;
+        }
     }
 
     private MockFile getFile(String path) {
