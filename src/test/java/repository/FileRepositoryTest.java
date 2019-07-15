@@ -89,6 +89,7 @@ public class FileRepositoryTest {
         String path = "./public/test/1";
         String body = "Dog Breed: Corgi";
         fileHandler.writeFile(path, "txt", body.getBytes());
+
         assertEquals(body, new String(fileHandler.readFile("./public/test/1.txt")));
     }
 

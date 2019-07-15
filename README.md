@@ -25,16 +25,15 @@ public class App {
         // creating a directory
         app.staticDirectory("/public");
 
-
         // creating routes
         app.post("/dog", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
-            String resourceRoute = app.saveResource(
+            OperationResult result = app.saveResource(
                                         uniqueRoute, 
                                         request.getContentFileType(),
                                         request.getBody()
                                     );
-            response.forPost(resourceRoute);
+            response.forPost(result);
         });
 
         return app;
@@ -50,20 +49,20 @@ Users can define a route and a callback that let's them customize the final resp
 
 ### Router Methods
 
-| Method                                                             | Returns | Description                                                                                                                                                                                                                                             |
-|--------------------------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| get(String route, Callback handler)                                | void    | Creates a GET method for the defined route                                                                                                                                                                                                              |
-| head(String route, Callback handler)                               | void    | Creates a HEAD method for the defined route                                                                                                                                                                                                             |
-| post(String route, Callback handler)                               | void    | Creates a POST method for the defined route                                                                                                                                                                                                             |
-| put(String route, Callback handler)                                | void    | Creates a PUT method for the defined route                                                                                                                                                                                                              |
-| delete(String route, Callback handler)                             | void    | Creates a DELETE method for the defined route                                                                                                                                                                                                           |
-| all(String route, Callback handler)                                | void    | Creates all methods for the defined route                                                                                                                                                                                                               |
-| directory(String directoryPath)                                    | void    | Links to an existing directory from which resources can be read from / written to                                                                                                                                                                       |
-| saveResource(String resourcePath, String fileType, byte[] content) | void    | Requires a static directory. Saves a resource to the previously defined static directory and creates the necessary GET & DELETE routes to access the resource. Returns the resource path.                                                               |
-| saveResource(String resourcePath, String fileType, String content) | void    | Requires a static directory. Saves a resource to the previously defined static directory and creates the necessary GET & DELETE routes to access the resource. Returns the resource path.                                                               |
-| deleteResource(String resourcePath, String fileType)               | void    | Requires a static directory. Deletes a resource from the defined static directory.                                                                                                                                                                      |
-| getUniqueRoute(String route)                                       | String  | Given a route such as "/dog", this will look through child paths and return the next unique route. For example, "/dog/2" would be returned if "/dog/1" is already being utilized.                                                                       |
-| updateJSONResource(String filePath, String patchDocument)          | boolean | Requires a static directory. Given a existing JSON file path and a string JSON patch document, updates the json resource in the previously defined static directory. Returns a true/false depending on if the server successfully updates the document. |
+| Method                                                             | Returns         | Description                                                                                                                                                            |
+|--------------------------------------------------------------------|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| get(String route, Callback handler)                                | void            | Creates a GET method for the defined route                                                                                                                             |
+| head(String route, Callback handler)                               | void            | Creates a HEAD method for the defined route                                                                                                                            |
+| post(String route, Callback handler)                               | void            | Creates a HEAD method for the defined route                                                                                                                            |
+| put(String route, Callback handler)                                | void            | Creates a PUT method for the defined route                                                                                                                             |
+| delete(String route, Callback handler)                             | void            | Creates a DELETE method for the defined route                                                                                                                          |
+| all(String route, Callback handler)                                | void            | Creates all methods for the defined route                                                                                                                              |
+| directory(String directoryPath)                                    | void            | Links to an existing directory from which resources can be read from / written to                                                                                      |
+| saveResource(String resourcePath, String fileType, byte[] content) | OperationResult | Requires a directory. Saves a resource to the directory and creates the necessary GET & DELETE routes to access the resource.                                          |
+| saveResource(String resourcePath, String fileType, String content) | OperationResult | Requires a directory. Saves a resource to the directory and creates the necessary GET & DELETE routes to access the resource.                                          |
+| deleteResource(String resourcePath, String fileType)               | OperationResult | Requires a directory. Deletes a resource from the directory.                                                                                                           |
+| updateJSONResource(String filePath, String patchDocument)          | OperationResult | Requires a directory. Given a existing JSON file path and a string JSON patch document, updates the json resource in the directory.                                    |
+| getUniqueRoute(String route)                                       | String          | Given a route such as "/dog", it looks through child paths and return the next unique route. For ex, "/dog/2" would be returned if "/dog/1" is already being utilized. |
 
 ### Request Methods
 
@@ -78,25 +77,30 @@ Users can define a route and a callback that let's them customize the final resp
 
 ### Response Methods
 
-| Method                                           | Returns       | Description                                                                                        |
-|--------------------------------------------------|---------------|----------------------------------------------------------------------------------------------------|
-| setStatus(String status)                         | void          | Sets the Response status                                                                           |
-| getStatus()                                      | String        | Returns Response status                                                                            |
-| setHeader(String headerName, String headerValue) | void          | Sets a Response header                                                                             |
-| getHeaders()                                     | LinkedHashMap | Returns a hash map of Response headers                                                             |
-| getBody()                                        | byte[]        | Returns the Response body                                                                          |
-| setFile(String filePath)                         | void          | Given a valid file path, Response sets the file, content-type and content-length                   |
-| setBody(byte[] bodyContent, String contentType)  | void          | Response sets the body content, content-type and content-length                                    |
-| setBody(String bodyContent, String contentType)  | void          | Response sets the body content, content-type and content-length                                    |
-| redirect(String redirectedRoute)                 | void          | Response sets the status and headers needed to handle a redirected route                           |
-| forPut()                                         | void          | Sets a response for a PUT request                                                                  |
-| forPost(String newResourceLocation)              | void          | Sets a response for a POST request                                                                 |
-| forHead(byte[] bodyContent, String contentType)  | void          | Sets a response for a HEAD request                                                                 |
-| forHead(String bodyContent, String contentType)  | void          | Sets a response for a HEAD request                                                                 |
-| forDelete()                                      | void          | Sets a response for a HEAD request                                                                 |
-| forOptions(String allowedHeaders)                | void          | Sets a response for a OPTIONS request                                                              |
-| forPatch(boolean patchResult)                    | void          | Sets a response for a PATCH request depending if the server is able to successfully patch the file |
-
+| Method                                                                                           | Returns       | Description                                                                                        |
+|--------------------------------------------------------------------------------------------------|---------------|----------------------------------------------------------------------------------------------------|
+| create()                                                                                         | byte[]        | Creates the formatted Response from status, headers and body (if any) and returns it as bye[].     |
+| getStatus()                                                                                      | String        | Returns Response status                                                                            |
+| getBody()                                                                                        | byte[]        | Returns the Response body                                                                          |
+| getHeaders()                                                                                     | LinkedHashMap | Returns a hash map of Response headers                                                             |
+| setStatus(String status)                                                                         | void          | Sets the Response status                                                                           |
+| setHeader(String headerName, String headerValue)                                                 | void          | Sets a Response header                                                                             |
+| setFile(String filePath)                                                                         | void          | Given a valid file path, Response sets the file, content-type and content-length                   |
+| setBody(byte[] bodyContent, String contentType)                                                  | void          | Response sets the body content, content-type and content-length                                    |
+| setBody(String bodyContent, String contentType)                                                  | void          | Response sets the body content, content-type and content-length                                    |
+| redirect(String redirectedRoute)                                                                 | void          | Response sets the status and headers needed to handle a redirected route                           |
+| forHead(byte[] bodyContent, String contentType)                                                  | void          | Sets a response for a HEAD request                                                                 |
+| forHead(String bodyContent, String contentType)                                                  | void          | Sets a response for a HEAD request                                                                 |
+| forOptions(String allowedHeaders)                                                                | void          | Sets a response for a OPTIONS request                                                              |
+| forPut(OperationResult putResult)                                                                | void          | Sets a response for a PUT request                                                                  |
+| forPut(OperationResult putResult, byte[] content, String contentType)                            | void          | Sets a response for a PUT request                                                                  |
+| forPost(OperationResult postResult, String newResourceLocation)                                  | void          | Sets a response for a POST request                                                                 |
+| forPost(OperationResult postResult, String resourceLocation, String content, String contentType) | void          | Sets a response for a POST request                                                                 |
+| forPost(OperationResult postResult, String resourceLocation, byte[] content, String contentType) | void          | Sets a response for a POST request                                                                 |
+| forDelete(OperationResult deleteResult)                                                          | void          | Sets a response for a DELETE request                                                               |
+| forDelete(OperationResult deleteResult, byte[] bodyContent, String contentType)                  | void          | Sets a response for a DELETE request                                                               |
+| forPatch(OperationResult patchResult)                                                            | void          | Sets a response for a PATCH request depending if the server is able to successfully patch the file |
+| forPatch(OperationResult patchResult, byte[] bodyContent, String contentType)                    | void          | Sets a response for a PATCH request depending if the server is able to successfully patch the file |
 
 # HTTP Server Local Development Setup
 

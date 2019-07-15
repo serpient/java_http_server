@@ -14,10 +14,10 @@ import java.util.stream.Stream;
 public class Router {
     private HashMap<String, HashMap<String, Callback>> routes;
     private Path basePath;
-    private static Path fullDirectoryPath;
+    private Path fullDirectoryPath;
+    private String directoryPath;
     private Repository repository;
-    private static int port;
-    private static ResourceHandler resource;
+    private int port;
 
     public Router() {
         this.routes = new HashMap<>();
@@ -49,12 +49,16 @@ public class Router {
         return repository;
     }
 
-    public HashMap<String, HashMap<String, Callback>> getRouter() {
+    public HashMap<String, HashMap<String, Callback>> getRoutes() {
         return routes;
     }
 
-    public static Path getFullDirectoryPath() {
+    public Path getFullDirectoryPath() {
         return fullDirectoryPath;
+    }
+
+    public String getDirectoryPath() {
+        return directoryPath;
     }
 
     public void basePath(Path path) {
@@ -130,6 +134,13 @@ public class Router {
     }
 
     public HashMap<String, Callback> getMethodCollection(String route) {
+        for (String keyRoute: routes.keySet()) {
+            String parentRoute = route.substring(0, route.lastIndexOf("/"));
+            if (keyRoute.startsWith(parentRoute + "/:")) {
+                return routes.get(keyRoute) == null ? new HashMap<>() : routes.get(keyRoute);
+            }
+        }
+
         return routes.get(route) == null ? new HashMap<>() : routes.get(route);
     }
 
@@ -144,41 +155,25 @@ public class Router {
         } else {
             return path;
         }
-
     }
 
     public void directory(String directoryPath) {
         this.fullDirectoryPath = Paths.get(basePath.toString(), directoryPath);
         String formattedDirectoryPath = trimPath(directoryPath);
-        this.resource = new ResourceHandler(this, formattedDirectoryPath);
-        resource.createDirectory(formattedDirectoryPath);
+        this.directoryPath = formattedDirectoryPath;
+        RouterDirectoryHandler.createDirectory(this, formattedDirectoryPath);
     }
 
-    public void deleteResource(String resourcePath, String fileType) {
-        resource.delete(resourcePath + "." + fileType);
-        resource.paths(resourcePath, fileType).forEach(pathToDelete -> deleteRoutes(pathToDelete));
+    public OperationResult deleteResource(String resourcePath, String fileType) {
+        return RouterResourceHandler.delete(this, resourcePath, fileType);
     }
 
-    private void deleteRoutes(String resourcePath) {
-        routes.remove(resourcePath);
+    public OperationResult saveResource(String resourcePath, String fileType, byte[] content) {
+        return RouterResourceHandler.save(this, resourcePath, fileType, content);
     }
 
-    public String saveResource(String resourcePath, String fileType, byte[] content) {
-        resource.save(resourcePath, fileType, content);
-        resource.paths(resourcePath, fileType).forEach(path -> {
-            get(path, (Request request, Response response) -> {
-                response.setFile(resourcePath + "." + fileType);
-            });
-            delete(path, (Request request, Response response) -> {
-                deleteResource(resourcePath, fileType);
-                response.forDelete();
-            });
-        });
-        return resourcePath;
-    }
-
-    public String saveResource(String resourcePath, String fileType, String content) {
-        return saveResource(resourcePath, fileType, content.getBytes());
+    public OperationResult saveResource(String resourcePath, String fileType, String content) {
+        return RouterResourceHandler.save(this, resourcePath, fileType, content.getBytes());
     }
 
     public String getUniqueRoute(String path) {
@@ -205,12 +200,18 @@ public class Router {
                 .filter(s -> s.startsWith(route + "/") && !s.endsWith(":id"))
                 .map(s -> {
                     int idx = s.lastIndexOf("/");
-                    return Integer.parseInt(s.substring(idx + 1));
+                    String resourceName = s.substring(idx + 1);
+                    if (resourceName.contains(".")) {
+                        int lastIdx = resourceName.lastIndexOf(".");
+                        resourceName = resourceName.substring(0,lastIdx);
+                    }
+
+                    return Integer.parseInt(resourceName);
                 })
                 .max(Comparator.comparing(Integer::valueOf)).get();
     }
 
-    public boolean updateJSONResource(String filePath, String patchDocument) {
-        return resource.updateJSON(filePath,  patchDocument);
+    public OperationResult updateJSONResource(String filePath, String patchDocument) {
+        return RouterResourceHandler.updateJSON(this, filePath,  patchDocument);
     }
 }

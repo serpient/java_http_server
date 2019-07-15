@@ -44,3 +44,6 @@ gradle
 
 # Server Logs
 /log
+
+# Test Directory
+/public/post_form

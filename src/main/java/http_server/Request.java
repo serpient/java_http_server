@@ -19,7 +19,6 @@ public class Request {
         this.body = body;
         this.headers = headers;
         this.parameters = parameters;
-
     }
 
     public String getMethod() {

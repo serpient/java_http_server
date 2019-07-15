@@ -96,6 +96,28 @@ public class ResponseTest {
     }
 
     @Test
+    public void response_can_set_file_with_just_name_and_without_file_type() {
+        String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
+        Response response = createResponseObject(request);
+        response.setFile("/water");
+        byte[] readImage = mockRepository.readFile("./public/water.png");
+
+        assertEquals(StatusCode.ok, response.getStatus());
+        assertEquals(MIMETypes.png, response.getHeaders().get(Headers.contentType));
+        assertEquals(readImage.length + "", response.getHeaders().get(Headers.contentLength));
+    }
+
+    @Test
+    public void response_can_handle_invalid_setting_of_file() {
+        String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
+        Response response = createResponseObject(request);
+        response.setFile("/does_not_exist");
+
+        assertEquals(StatusCode.internalError, response.getStatus());
+    }
+
+
+    @Test
     public void response_can_format_full_redirect_response() {
         String request = "GET /simple_get HTTP/1.1" + Stringer.crlf;
         Response response = createResponseObject(request);
@@ -125,19 +147,35 @@ public class ResponseTest {
 
     @Test
     public void response_can_format_full_put_response() {
-        String request_line = "PUT /dog HTTP/1.1" + Stringer.crlf;
+        String request_line = "PUT /not_existing HTTP/1.1" + Stringer.crlf;
+        String content_type = "Content-Type: text/plain" + Stringer.crlf;
+        String content_length = "Content-Length: 16" + Stringer.crlf;
+        String body = "Dog Breed: Corgi";
+        String request = request_line + content_type + content_length + Stringer.crlf + body;
+        Response response = createResponseObject(request);
+        response.forPut(new OperationResult(true, StatusCode.created));
+
+        assertEquals(StatusCode.created, response.getStatus());
+        assertEquals(null, response.getHeaders().get(Headers.contentLength));
+        assertEquals(null, response.getHeaders().get(Headers.contentType));
+        assertEquals(null, response.getBody());
+    }
+
+    @Test
+    public void response_can_format_full_put_response_with_body() {
+        String request_line = "PUT /dog_with_body HTTP/1.1" + Stringer.crlf;
         String content_type = "Content-Type: text/plain" + Stringer.crlf;
         String content_length = "Content-Length: 16" + Stringer.crlf;
         String body = "Dog Breed: Corgi";
         String request = request_line + content_type + content_length + Stringer.crlf + body;
         byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.forPut();
+        response.forPut(new OperationResult(true, StatusCode.created), bodyBytes, MIMETypes.plain);
 
         assertEquals(StatusCode.created, response.getStatus());
-        assertEquals(null, response.getHeaders().get(Headers.contentLength));
-        assertEquals(null, response.getHeaders().get(Headers.contentType));
-        assertEquals(null, response.getBody());
+        assertEquals("16", response.getHeaders().get(Headers.contentLength));
+        assertEquals(MIMETypes.plain, response.getHeaders().get(Headers.contentType));
+        assertEquals(bodyBytes, response.getBody());
     }
 
     @Test
@@ -147,13 +185,28 @@ public class ResponseTest {
         String content_length = "Content-Length: 16" + Stringer.crlf;
         String body = "Dog Breed: Corgi";
         String request = request_line + content_type + content_length + Stringer.crlf + body;
-        byte[] bodyBytes = body.getBytes();
         Response response = createResponseObject(request);
-        response.forPost("/dog/1");
+        response.forPost(new OperationResult(true, StatusCode.created), "/dog/1");
 
         assertEquals(StatusCode.created, response.getStatus());
         assertEquals("/dog/1", response.getHeaders().get(Headers.location));
         assertEquals(null, response.getBody());
+    }
+
+    @Test
+    public void response_can_format_full_post_with_body_response() {
+        String request_line = "POST /dog HTTP/1.1" + Stringer.crlf;
+        String content_type = "Content-Type: text/plain" + Stringer.crlf;
+        String content_length = "Content-Length: 16" + Stringer.crlf;
+        String body = "Dog Breed: Corgi";
+        String request = request_line + content_type + content_length + Stringer.crlf + body;
+        byte[] bodyBytes = body.getBytes();
+        Response response = createResponseObject(request);
+        response.forPost(new OperationResult(true, StatusCode.created),"/dog/1",  bodyBytes, MIMETypes.plain);
+
+        assertEquals(StatusCode.created, response.getStatus());
+        assertEquals("/dog/1", response.getHeaders().get(Headers.location));
+        assertEquals(bodyBytes, response.getBody());
     }
 
     @Test
@@ -180,5 +233,69 @@ public class ResponseTest {
         assertEquals(StatusCode.ok, response.getStatus());
         assertEquals("OPTIONS, HEAD", response.getHeaders().get(Headers.allowedHeaders));
         assertEquals(null, response.getBody());
+    }
+
+    @Test
+    public void response_can_format_delete_response() {
+        String request_line = "DELETE /get_with_body HTTP/1.1" + Stringer.crlf;
+        String request = request_line + Stringer.crlf;
+        Response response = createResponseObject(request);
+        response.forDelete(new OperationResult(true, StatusCode.noContent));
+
+        assertEquals(StatusCode.noContent, response.getStatus());
+        assertEquals(null, response.getBody());
+    }
+
+    @Test
+    public void response_can_format_delete_with_body_response() {
+        String request_line = "DELETE /get_with_body HTTP/1.1" + Stringer.crlf;
+        String request = request_line + Stringer.crlf;
+        Response response = createResponseObject(request);
+        byte[] result = "Delete result".getBytes();
+        response.forDelete(new OperationResult(true, StatusCode.created), result, MIMETypes.plain);
+
+        assertEquals(StatusCode.ok, response.getStatus());
+        assertEquals(result, response.getBody());
+    }
+
+    @Test
+    public void response_can_format_patch_response() {
+        String request_line = "PATCH /get_with_body HTTP/1.1" + Stringer.crlf;
+        String request = request_line + Stringer.crlf;
+        Response response = createResponseObject(request);
+        String result = "patch result";
+        OperationResult pathResult = new OperationResult(true, StatusCode.created, result);
+        response.forPatch(pathResult);
+
+        assertEquals(StatusCode.created, response.getStatus());
+        assertEquals(null, response.getBody());
+    }
+
+    @Test
+    public void response_can_format_patch_with_body_response() {
+        String request_line = "PATCH /get_with_body HTTP/1.1" + Stringer.crlf;
+        String request = request_line + Stringer.crlf;
+        Response response = createResponseObject(request);
+        String result = "patch result";
+        OperationResult pathResult = new OperationResult(true, StatusCode.created, result);
+        response.forPatch(pathResult, pathResult.data(), MIMETypes.plain);
+
+        assertEquals(StatusCode.ok, response.getStatus());
+        assertEquals(result, new String(response.getBody()));
+        assertEquals(MIMETypes.plain, response.getHeaders().get(Headers.contentType));
+    }
+
+    @Test
+    public void response_can_format_invalid_execution_of_patch_with_body_response() {
+        String request_line = "PATCH /get_with_body HTTP/1.1" + Stringer.crlf;
+        String request = request_line + Stringer.crlf;
+        Response response = createResponseObject(request);
+        String result = "patch result";
+        OperationResult pathResult = new OperationResult(false, StatusCode.conflict, result);
+        response.forPatch(pathResult, pathResult.data(), MIMETypes.plain);
+
+        assertEquals(StatusCode.conflict, response.getStatus());
+        assertEquals(null, response.getBody());
+        assertEquals(null, response.getHeaders().get(Headers.contentType));
     }
 }

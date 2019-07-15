@@ -20,26 +20,15 @@ public class HTMLBuilder {
     }
 
     public String generate() {
-        return headHTML() + starterBody() + body + endHtml();
-    }
-
-    private String headHTML() {
         return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "<forHead>\n" +
                 "<meta charset=\"UTF-8\">\n" +
-                "<title>Home Page</title>\n" +
                 headerHTML +
-                "</forHead>\n";
-    }
-
-    private String starterBody() {
-        return "<body>\n";
-    }
-
-    private String endHtml() {
-        return "</body>\n" +
+                "</forHead>\n" +
+                "<body>\n" +
+                body +
+                "</body>\n" +
                 "</html>";
     }
-
 }

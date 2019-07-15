@@ -24,6 +24,6 @@ public class Timestamp {
     }
 
     private static DateTimeFormatter shortDatePattern() {
-        return DateTimeFormatter.ofPattern("yyyymmdd-hh:mm:ss");
+        return DateTimeFormatter.ofPattern("yyyyMMdd-hh:mm:ss");
     }
 }

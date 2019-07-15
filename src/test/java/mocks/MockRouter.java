@@ -1,12 +1,14 @@
 package mocks;
 
 import html_builder.HTMLBuilder;
+import http_server.OperationResult;
 import http_standards.Headers;
 import http_standards.MIMETypes;
 import http_server.Request;
 import http_server.Response;
 import http_server.Router;
 import http_standards.Parser;
+import http_standards.StatusCode;
 import repository.Repository;
 
 public class MockRouter {
@@ -48,7 +50,7 @@ public class MockRouter {
         });
 
         app.post("/echo_body", (Request request, Response response) -> {
-            response.forPost(request.getRoute());
+            response.forPost(new OperationResult(true, StatusCode.created), request.getRoute());
         });
 
         app.get("/method_options", (Request request, Response response) -> {});
@@ -61,14 +63,15 @@ public class MockRouter {
 
         app.post("/dog", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
-            String resourceRoute = app.saveResource(uniqueRoute, request.getContentFileType(),
+            OperationResult result = app.saveResource(uniqueRoute, request.getContentFileType(),
                     request.getBody().getBytes());
-            response.forPost(resourceRoute);
+            response.forPost(result, uniqueRoute);
         });
 
         app.put("/cat/1", (Request request, Response response) -> {
-            app.saveResource(request.getRoute(), request.getContentFileType(), request.getBody().getBytes());
-            response.forPut();
+            OperationResult result = app.saveResource(request.getRoute(), request.getContentFileType(),
+                    request.getBody().getBytes());
+            response.forPut(result);
         });
 
         app.get("/multiple_parameters", (Request request, Response response) -> {
@@ -94,9 +97,9 @@ public class MockRouter {
 
         app.get("/form_action", (Request request, Response response) -> {
             String uniqueRoute = app.getUniqueRoute(request.getRoute());
-            String resourceRoute = app.saveResource(uniqueRoute, MIMETypes.getFileType(MIMETypes.plain),
+            OperationResult result = app.saveResource(uniqueRoute, MIMETypes.getFileType(MIMETypes.plain),
                     (request.getParameters().entrySet() + "").getBytes());
-            response.forPost(resourceRoute);
+            response.forPost(result, uniqueRoute);
             String body = "Parameters: \n" + request.getParameters().entrySet();
             response.setBody(body.getBytes(), MIMETypes.plain);
         });
@@ -125,13 +128,12 @@ public class MockRouter {
             } else {
                 content = request.getBody();
             }
-            String resourceRoute = app.saveResource(uniqueRoute, "txt", content);
-            response.forPost(resourceRoute);
-            response.setBody("Parameters: \n" + content, MIMETypes.plain);
+            OperationResult result = app.saveResource(uniqueRoute, "txt", content);
+            response.forPost(result, uniqueRoute, "Parameters: \n" + content, MIMETypes.plain);
         });
 
-        app.patch("/contacts/1", (Request request, Response response) -> {
-            boolean updateResult = app.updateJSONResource(request.getRoute(), request.getBody());
+        app.patch("/contacts/:id", (Request request, Response response) -> {
+            OperationResult updateResult = app.updateJSONResource(request.getRoute(), request.getBody());
             response.forPatch(updateResult);
         });
 
