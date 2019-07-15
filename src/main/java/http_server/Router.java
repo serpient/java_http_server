@@ -1,7 +1,6 @@
 package http_server;
 
 import http_standards.Methods;
-import http_standards.StatusCode;
 import repository.Repository;
 import repository.FileRepository;
 import java.nio.file.Path;

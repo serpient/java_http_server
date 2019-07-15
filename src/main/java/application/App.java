@@ -71,14 +71,14 @@ public class App {
             response.forPost(saveResult, uniqueRoute);
         });
 
+        app.get("/cat/:id", (Request request, Response response) -> {
+            response.setFile(request.getRoute());
+        });
+
         app.put("/cat/:id", (Request request, Response response) -> {
             OperationResult result = app.saveResource(request.getRoute(), request.getContentFileType(),
                     request.getBody());
             response.forPut(result);
-        });
-
-        app.get("/cat/:id", (Request request, Response response) -> {
-            response.setFile(request.getRoute());
         });
 
         app.get("/multiple_parameters", (Request request, Response response) -> {

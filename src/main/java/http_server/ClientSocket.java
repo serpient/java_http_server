@@ -6,25 +6,30 @@ import java.io.IOException;
 
 public class ClientSocket implements SocketWrapper {
     private final Socket clientSocket;
-    private BufferedReader inputStream;
-    private WriterWrapper outputStream;
+    private BufferedReader input;
+    private WriterWrapper output;
 
-    char[] characterBuffer = new char[100000];
+    char[] characterBuffer = new char[1000];
 
     public ClientSocket(
             Socket clientSocket,
-            BufferedReader inputStream,
-            WriterWrapper outputStream
+            BufferedReader input,
+            WriterWrapper output
     ) {
         this.clientSocket = clientSocket;
-        this.inputStream = inputStream;
-        this.outputStream = outputStream;
+        this.input = input;
+        this.output = output;
     }
 
     public String readData() {
         try {
-            int bytes_read = inputStream.read(characterBuffer);
-            return new String(characterBuffer, 0, bytes_read);
+            String result = "";
+            int bytes_read = input.read(characterBuffer);
+            while (bytes_read != -1 && bytes_read != 0) {
+                result += new String(characterBuffer, 0, bytes_read);
+                bytes_read = input.ready() ? input.read(characterBuffer) : -1;
+            }
+            return result;
         } catch (IOException e) {
             System.err.println(e.toString());
             return e.toString();
@@ -33,8 +38,8 @@ public class ClientSocket implements SocketWrapper {
 
     public void close() {
         try {
-            inputStream.close();
-            outputStream.close();
+            input.close();
+            output.close();
             clientSocket.close();
         } catch (IOException e) {
             System.err.println(e.toString());
@@ -43,7 +48,7 @@ public class ClientSocket implements SocketWrapper {
 
     public boolean ready() {
         try {
-            return inputStream.ready();
+            return input.ready();
         } catch (IOException e) {
             System.err.println(e.toString());
             return false;
@@ -51,6 +56,6 @@ public class ClientSocket implements SocketWrapper {
     }
 
     public void sendBinary(byte[] binary) {
-        outputStream.send(binary);
+        output.send(binary);
     }
 }

@@ -122,7 +122,7 @@ public class FileRepository implements Repository {
         streamWriter(intendedFilePath, fileType, fileContents, true);
     }
 
-    private void streamWriter(String intendedFilePath, String fileType, byte[] fileContents, boolean appendFile)  {
+    private void streamWriter(String intendedFilePath, String fileType, byte[] fileContents, boolean appendFile) {
         Path path = Paths.get(intendedFilePath + "." + fileType);
         createDirectories(Paths.get(trimLastResource(intendedFilePath)));
         try {

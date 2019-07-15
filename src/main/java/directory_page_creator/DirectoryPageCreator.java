@@ -5,15 +5,7 @@ import repository.FileRepository;
 import java.util.List;
 
 public class DirectoryPageCreator {
-    private List<String> directoryList;
-    private String staticDirectoryPath;
-
-    public DirectoryPageCreator(List<String> directoryList, String staticDirectoryPath) {
-        this.directoryList = directoryList;
-        this.staticDirectoryPath = staticDirectoryPath;
-    }
-
-    public String generateHTML() {
+    public static String generateHTML(List<String> directoryList, String directoryPath) {
         String directoryCSSPath = "./src/main/java/directory_page_creator/DirectoryStyles";
         HTMLBuilder builder = new HTMLBuilder();
 
@@ -22,19 +14,19 @@ public class DirectoryPageCreator {
             .addHeader(new FileRepository().getFileContents(directoryCSSPath))
             .addHeader("</style>")
             .append("<div class='directory-page'>")
-            .append("<h1>Directory for " + staticDirectoryPath + "</h1>")
+            .append("<h1>Directory for " + directoryPath + "</h1>")
             .append("<hr />")
             .append("<ul>\n")
-            .append(renderAsList())
+            .append(renderAsList(directoryList, directoryPath))
             .append("</ul>\n")
             .append("</div>")
             .generate();
     }
 
-    private String renderAsList() {
+    private static String renderAsList(List<String> directoryList, String directoryPath) {
         String htmlList = "";
         for (int i = 0; i < directoryList.size(); i++) {
-            htmlList += "<li class='bullets'><a href='" + staticDirectoryPath + "/" +
+            htmlList += "<li class='bullets'><a href='" + directoryPath + "/" +
                     directoryList.get(i) + "'>" + directoryList.get(i) + "</a></li>\n";
         }
         return htmlList;
